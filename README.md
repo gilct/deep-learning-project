@@ -1,4 +1,4 @@
-# Deep Learning Project
+# Deep Learning Project (Spring 2022)
 
 Repository for the project of EE-559 Deep Learning.
 
