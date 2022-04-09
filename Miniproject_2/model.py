@@ -18,7 +18,13 @@ class Module(object):
     """
     
     def __init__(self):
-        """Constructor"""
+        """Constructor  
+
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         pass
     
     def forward(self, *input):
@@ -28,6 +34,11 @@ class Module(object):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying the module
         """
         raise NotImplementedError
         
@@ -42,7 +53,7 @@ class Module(object):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
         
@@ -52,7 +63,7 @@ class Module(object):
         Returns
         -------
         list
-            the list of trainable parameters
+            The list of trainable parameters
         """
         return []
 
@@ -73,7 +84,13 @@ class Sequential(object):
     """
     
     def __init__(self):
-        """Sequential constructor"""
+        """Sequential constructor 
+              
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         raise NotImplementedError
     
     def forward(self, *input):
@@ -83,6 +100,11 @@ class Sequential(object):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying the sequential model
         """
         raise NotImplementedError
         
@@ -97,7 +119,7 @@ class Sequential(object):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
         
@@ -107,7 +129,7 @@ class Sequential(object):
         Returns
         -------
         list
-            the list of trainable parameters
+            The list of trainable parameters
         """
         return []
 
@@ -132,7 +154,7 @@ class Conv2d(Module):
         Parameters
         ----------
         params : ?
-            parameters
+            Parameters
         """
         raise NotImplementedError
     
@@ -147,7 +169,7 @@ class Conv2d(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The result of applying convolution
         """
         raise NotImplementedError
         
@@ -162,7 +184,7 @@ class Conv2d(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the input
+            The gradient of the loss wrt the input
         """
         raise NotImplementedError 
         
@@ -172,7 +194,7 @@ class Conv2d(Module):
         Returns
         -------
         list
-            the list of trainable parameters
+            The list of trainable parameters
         """
         return []    
 
@@ -195,7 +217,7 @@ class NearestUpsampling(Module):
         Parameters
         ----------
         params : ?
-            parameters
+            Parameters
         """
         raise NotImplementedError
     
@@ -206,6 +228,11 @@ class NearestUpsampling(Module):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying upsampling
         """
         raise NotImplementedError
         
@@ -220,7 +247,7 @@ class NearestUpsampling(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
         
@@ -230,7 +257,7 @@ class NearestUpsampling(Module):
         Returns
         -------
         list
-            the list of trainable parameters
+            The list of trainable parameters
         """
         return []  
 
@@ -249,7 +276,13 @@ class ReLU(Module):
     """
     
     def __init__(self):
-        """ReLU constructor"""
+        """ReLU constructor 
+              
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         raise NotImplementedError
     
     def forward(self, *input):
@@ -259,6 +292,11 @@ class ReLU(Module):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying the ReLU function
         """
         raise NotImplementedError
         
@@ -273,7 +311,7 @@ class ReLU(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
 
@@ -290,7 +328,13 @@ class Sigmoid(Module):
     """
     
     def __init__(self):
-        """Sigmoid constructor"""
+        """Sigmoid constructor 
+              
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         raise NotImplementedError
     
     def forward(self, *input):
@@ -300,6 +344,11 @@ class Sigmoid(Module):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying the sigmoid function
         """
         raise NotImplementedError
         
@@ -314,7 +363,7 @@ class Sigmoid(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
 
@@ -333,7 +382,13 @@ class MSE(Module):
     """
     
     def __init__(self):
-        """MSE loss constructor"""
+        """MSE loss constructor
+              
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         raise NotImplementedError
     
     def forward (self, *input):
@@ -343,6 +398,11 @@ class MSE(Module):
         ----------
         input : torch.tensor
             The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying the MSE
         """
         raise NotImplementedError
         
@@ -357,7 +417,7 @@ class MSE(Module):
         Returns
         -------
         torch.tensor
-            the gradient of the loss wrt the module's input
+            The gradient of the loss wrt the module's input
         """
         raise NotImplementedError 
 
@@ -376,7 +436,13 @@ class SGD():
     """
     
     def __init__(self):
-        """SGD constructor"""
+        """SGD constructor
+              
+        Parameters
+        ----------
+        params : ?
+            Parameters
+        """
         raise NotImplementedError
     
     def step(self):
