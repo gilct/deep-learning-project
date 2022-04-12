@@ -69,7 +69,7 @@ class Module(object):
 
 # ------------------- Sequential -------------------
 
-class Sequential(object):
+class Sequential(Module):
     """
     Sequential model architecture class
 
