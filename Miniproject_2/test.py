@@ -27,7 +27,7 @@ class Testing(unittest.TestCase):
         mean, std = 0, 20
         unif_lower, unif_upper = 10, 15
         train_input = torch.empty(n_samples, in_dim).normal_(mean, std)
-        train_targets = torch.empty(n_samples).uniform_(unif_lower,unif_upper)
+        train_targets = torch.empty(n_samples, out_dim).uniform_(unif_lower,unif_upper)
 
         init_val = 0.05
 
@@ -58,14 +58,14 @@ class Testing(unittest.TestCase):
             for input, targets in zip(train_input.split(batch_size),
                                       train_targets.split(batch_size)):
 
-                output_no_torch = model_no_torch.forward(input.clone())
-                output_torch = model_torch(input.clone())
+                output_no_torch = model_no_torch.forward(input)
+                output_torch = model_torch(input)
 
                 stats_no_torch = (output_no_torch.mean().item(), output_no_torch.std().item())
                 stats_torch = (output_torch.mean().item(), output_torch.std().item())
 
-                loss_no_torch = criterion_no_torch.forward(output_no_torch, targets.clone())
-                loss_torch = criterion_torch(output_torch, targets.view(-1,1).clone())
+                loss_no_torch = criterion_no_torch.forward(output_no_torch, targets)
+                loss_torch = criterion_torch(output_torch, targets)                
 
                 optimizer_no_torch.zero_grad()
                 optimizer_torch.zero_grad() 
