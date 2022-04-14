@@ -533,8 +533,8 @@ class MSE(Module):
         -------
         torch.tensor
             The result of applying the MSE
-        """        
-        self.error = (prediction - target.view(-1, 1))
+        """      
+        self.error = prediction - target
         self.num_samples = prediction.size(0)        
         return self.error.pow(2).mean()
         
