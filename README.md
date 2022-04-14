@@ -19,3 +19,8 @@ conda activate deeplearning
 conda install -c pytorch pytorch=1.9.0 torchvision=0.10.0
 conda install -c anaconda jupyter
 ```
+
+Could be some package errors, can help to simply use default versions of torch
+```
+conda install -c pytorch pytorch torchvision
+```
