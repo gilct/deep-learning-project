@@ -7,6 +7,7 @@ import torch.nn.functional as F
 torch.set_grad_enabled(True)
 
 SEED = 2022
+torch.manual_seed(SEED)
 
 class LinearTorchTest(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim):
@@ -20,8 +21,6 @@ class LinearTorchTest(nn.Module):
 
 class Testing(unittest.TestCase):
     def test_linear(self):
-
-        torch.manual_seed(SEED)
 
         in_dim, hidden_dim, out_dim = 5, 3, 1
         n_samples = 200
