@@ -262,7 +262,7 @@ class Conv2d(Module):
             Parameters
         """
         super().__init__()
-        self.input_channels = in_channels
+        self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = make_tuple(kernel_size)
         self.stride = make_tuple(stride)
