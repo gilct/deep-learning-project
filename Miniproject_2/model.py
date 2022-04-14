@@ -174,8 +174,8 @@ class Linear(Module):
             Default value of all weights (default is None)
         """
         super().__init__()
-        self.W = torch.empty(input_size, output_size)
-        self.b = torch.empty(output_size)
+        self.Weight = torch.empty(input_size, output_size)
+        self.bias = torch.empty(output_size)
         self.gradW = torch.empty(input_size, output_size)
         self.gradb = torch.empty(output_size)
         self.reset_params(input_size, init_val)
@@ -193,8 +193,8 @@ class Linear(Module):
         torch.tensor
             The result of applying convolution
         """
-        self.z = input[0].clone()
-        return self.z.mm(self.W).add(self.b)
+        self.input = input[0].clone()
+        return self.input.mm(self.Weight).add(self.bias)
         
     def backward(self, *gradwrtoutput):
         """Linear layer backward pass
@@ -210,9 +210,9 @@ class Linear(Module):
             The gradient of the loss wrt the input
         """
         grad = gradwrtoutput[0].clone()
-        self.gradW.add_(self.z.t().mm(grad))
+        self.gradW.add_(self.input.t().mm(grad))
         self.gradb.add_(grad.sum(0))
-        return grad.mm(self.W.t()) 
+        return grad.mm(self.Weight.t()) 
         
     def param(self):
         """Returns the trainable parameters of the linear layer
@@ -222,17 +222,17 @@ class Linear(Module):
         list
             The list of trainable parameters
         """
-        return [(self.W, self.gradW), (self.b, self.gradb)]
+        return [(self.Weight, self.gradW), (self.bias, self.gradb)]
 
     def reset_params(self, input_size, init_val=None):
         """Resets the trainable parameters of the linear layer"""
         if init_val is not None:
-            self.W.fill_(init_val)
-            self.b.fill_(init_val)
+            self.Weight.fill_(init_val)
+            self.bias.fill_(init_val)
         else:
             stdv = 1. / math.sqrt(input_size)
-            self.W = self.W.uniform_(-stdv, stdv)
-            self.b = self.b.uniform_(-stdv, stdv) 
+            self.Weight = self.Weight.uniform_(-stdv, stdv)
+            self.bias = self.bias.uniform_(-stdv, stdv) 
         self.gradW.zero_()
         self.gradb.zero_()
 
@@ -262,15 +262,15 @@ class Conv2d(Module):
             Parameters
         """
         super().__init__()
-        self.in_channels = in_channels
+        self.input_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = make_tuple(kernel_size)
         self.stride = make_tuple(stride)
         self.padding = padding
         self.dilation = dilation
         self.use_bias = use_bias
-        self.weight = torch.empty(out_channels, in_channels, kernel_size[0], kernel_size[1])
-        self.bias = torch.empty(out_channels)
+        self.Weighteight = torch.empty(out_channels, in_channels, kernel_size[0], kernel_size[1])
+        self.biasias = torch.empty(out_channels)
         self.reset_params()
     
     def forward(self, *input):
@@ -318,9 +318,9 @@ class Conv2d(Module):
         for k in self.kernel_size:
             n *= k
         stdv = 1. / math.sqrt(n)
-        self.weight.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.uniform_(-stdv, stdv)  
+        self.Weighteight.uniform_(-stdv, stdv)
+        if self.biasias is not None:
+            self.biasias.uniform_(-stdv, stdv)  
 
 class NearestUpsampling(Module):
     """
@@ -402,7 +402,7 @@ class ReLU(Module):
     def __init__(self):
         """ReLU constructor """
         super().__init__()
-        self.z = None
+        self.input = None
     
     def forward(self, *input):
         """ReLU forward pass
@@ -417,8 +417,8 @@ class ReLU(Module):
         torch.tensor
             The result of applying the ReLU function
         """
-        self.z = input[0].clone()
-        return self.z.clamp(0)
+        self.input = input[0].clone()
+        return self.input.clamp(0)
         # return input[0].relu() # (or just call relu(), is this allowed?)
         
     def backward(self, *gradwrtoutput):
@@ -434,8 +434,8 @@ class ReLU(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        backward = self.z.sign().clamp(0)
-        # backward = self.z.relu().sign() (or just call relu(), is this allowed?)
+        backward = self.input.sign().clamp(0)
+        # backward = self.input.relu().sign() (or just call relu(), is this allowed?)
         return backward.mul(gradwrtoutput[0])
 
 class Sigmoid(Module):
@@ -459,7 +459,7 @@ class Sigmoid(Module):
             Parameters
         """
         super().__init__()
-        self.z = None
+        self.input = None
     
     def forward(self, *input):
         """Sigmoid forward pass
@@ -474,7 +474,7 @@ class Sigmoid(Module):
         torch.tensor
             The result of applying the sigmoid function
         """
-        self.z = input[0].clone()
+        self.input = input[0].clone()
         return input[0].sigmoid() # Using sidmoid() here, is this allowed?
         
     def backward(self, *gradwrtoutput):
@@ -490,7 +490,7 @@ class Sigmoid(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        backward = self.z.sigmoid() * (1 - self.z.sigmoid()) # Using sidmoid() here, is this allowed?
+        backward = self.input.sigmoid() * (1 - self.input.sigmoid()) # Using sidmoid() here, is this allowed?
         return backward.mul(gradwrtoutput[0])
 
 # ----------------------- Loss --------------------- 
@@ -516,10 +516,8 @@ class MSE(Module):
             Parameters
         """
         super().__init__()
-        self.y = None
-        self.target = None
-        self.e = None
-        self.n = None
+        self.error = None
+        self.num_samples = None
     
     def forward (self, prediction, target):
         """MSE loss forward pass
@@ -536,9 +534,9 @@ class MSE(Module):
         torch.tensor
             The result of applying the MSE
         """        
-        self.e = (prediction - target.view(-1, 1))
-        self.n = prediction.size(0)        
-        return self.e.pow(2).mean()
+        self.error = (prediction - target.view(-1, 1))
+        self.num_samples = prediction.size(0)        
+        return self.error.pow(2).mean()
         
     def backward(self):
         """MSE loss backward pass
@@ -548,7 +546,7 @@ class MSE(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        return (2.0 / self.n) * self.e 
+        return (2.0 / self.num_samples) * self.error 
 
 # -------------------- Optimizer ------------------- 
 
