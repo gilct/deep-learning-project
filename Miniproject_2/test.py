@@ -28,7 +28,6 @@ class Testing(unittest.TestCase):
         unif_lower, unif_upper = 10, 15
         train_input = torch.empty(n_samples, in_dim).normal_(mean, std)
         train_targets = torch.empty(n_samples, out_dim).uniform_(unif_lower,unif_upper)
-
         init_val = 0.05
 
         model_no_torch = Sequential(Linear(in_dim, hidden_dim, init_val=init_val),
@@ -41,7 +40,6 @@ class Testing(unittest.TestCase):
             model_torch.fc1.bias = nn.Parameter(torch.full_like(model_torch.fc1.bias, init_val))
             model_torch.fc2.weight = nn.Parameter(torch.full_like(model_torch.fc2.weight, init_val))
             model_torch.fc2.bias = nn.Parameter(torch.full_like(model_torch.fc2.bias, init_val))
-
 
         lr, nb_epochs, batch_size = 1e-1, 1, 20
 
