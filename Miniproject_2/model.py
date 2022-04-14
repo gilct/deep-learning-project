@@ -1,3 +1,4 @@
+import math
 import torch
 torch.set_grad_enabled(False)
 
@@ -83,15 +84,20 @@ class Sequential(Module):
         Returns the list of trainable parameters
     """
     
-    def __init__(self):
+    def __init__(self, *modules):
         """Sequential constructor 
               
         Parameters
         ----------
-        params : ?
-            Parameters
+        modules : Module
+            Variable length list of modules
         """
-        raise NotImplementedError
+        super().__init__()
+        self.modules = list(modules)
+        self.params = []
+        for module in self.modules:
+            for param in module.param():
+                self.params.append(param)
     
     def forward(self, *input):
         """Sequential forward pass
@@ -106,7 +112,11 @@ class Sequential(Module):
         torch.tensor
             The result of applying the sequential model
         """
-        raise NotImplementedError
+        forward_data = input[0].clone()
+        for module in self.modules:
+            forward_data = module.forward(forward_data)
+        return forward_data
+        
         
     def backward(self, *gradwrtoutput):
         """Sequential backward pass
@@ -121,7 +131,9 @@ class Sequential(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        backward_data = gradwrtoutput[0].clone()
+        for module in reversed(self.modules):
+            backward_data = module.backward(backward_data) 
         
     def param(self):
         """Returns the trainable parameters of the sequential model
@@ -131,9 +143,91 @@ class Sequential(Module):
         list
             The list of trainable parameters
         """
-        return []
+        return self.params
 
 # --------------------- Layers --------------------- 
+
+class Linear(Module):
+    """
+    Linear layer class
+
+    Methods
+    -------
+    forward(input)
+        Runs the forward pass
+    backward(gradwrtoutput)
+        Runs the backward pass
+    param()
+        Returns the list of trainable parameters
+    """
+    
+    def __init__(self, input_size, output_size, init_val=None):
+        """Convolution constructor
+        
+        Parameters
+        ----------
+        input_size : int
+            Size of each input sample
+        output_size : int
+            Size of each input sample
+        init_val: float
+            Default value of all weights (default is None)
+        """
+        super().__init__()
+        if init_val is not None:
+            self.W = torch.full((input_size, output_size), fill_value=init_val)
+            self.b = torch.full(size=(output_size,), fill_value=init_val)
+        else:
+            stdv = 1. / math.sqrt(input_size)
+            self.W = torch.empty(input_size, output_size).uniform_(-stdv, stdv)
+            self.b = torch.empty(output_size).uniform_(-stdv, stdv)
+            
+        self.gradW = torch.zeros(input_size, output_size)
+        self.gradb = torch.zeros(output_size)
+    
+    def forward(self, *input):
+        """Linear layer forward pass
+
+        Parameters
+        ----------
+        input : torch.tensor
+            The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying convolution
+        """
+        self.z = input[0].clone()
+        return self.z.mm(self.W).add(self.b)
+        
+    def backward(self, *gradwrtoutput):
+        """Linear layer backward pass
+
+        Parameters
+        ----------
+        gradwrtoutput : torch.tensor
+            The gradients wrt the module's output
+
+        Returns
+        -------
+        torch.tensor
+            The gradient of the loss wrt the input
+        """
+        grad = gradwrtoutput[0].clone()
+        self.gradW.add_(self.z.t().mm(grad))
+        self.gradb.add_(grad.sum(0))
+        return grad.mm(self.W.t()) 
+        
+    def param(self):
+        """Returns the trainable parameters of the linear layer
+
+        Returns
+        -------
+        list
+            The list of trainable parameters
+        """
+        return [(self.W, self.gradW), (self.b, self.gradb)]
 
 class Conv2d(Module):
     """
@@ -276,14 +370,9 @@ class ReLU(Module):
     """
     
     def __init__(self):
-        """ReLU constructor 
-              
-        Parameters
-        ----------
-        params : ?
-            Parameters
-        """
-        raise NotImplementedError
+        """ReLU constructor """
+        super().__init__()
+        self.z = None
     
     def forward(self, *input):
         """ReLU forward pass
@@ -298,7 +387,9 @@ class ReLU(Module):
         torch.tensor
             The result of applying the ReLU function
         """
-        raise NotImplementedError
+        self.z = input[0].clone()
+        return self.z.clamp(0)
+        # return input[0].relu() # (or just call relu(), is this allowed?)
         
     def backward(self, *gradwrtoutput):
         """ReLU backward pass
@@ -313,7 +404,9 @@ class ReLU(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        backward = self.z.sign().clamp(0)
+        # backward = self.z.relu().sign() (or just call relu(), is this allowed?)
+        return backward.mul(gradwrtoutput[0])
 
 class Sigmoid(Module):
     """
@@ -335,7 +428,8 @@ class Sigmoid(Module):
         params : ?
             Parameters
         """
-        raise NotImplementedError
+        super().__init__()
+        self.z = None
     
     def forward(self, *input):
         """Sigmoid forward pass
@@ -350,7 +444,8 @@ class Sigmoid(Module):
         torch.tensor
             The result of applying the sigmoid function
         """
-        raise NotImplementedError
+        self.z = input[0].clone()
+        return input[0].sigmoid() # Using sidmoid() here, is this allowed?
         
     def backward(self, *gradwrtoutput):
         """Sigmoid backward pass
@@ -365,7 +460,8 @@ class Sigmoid(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        backward = self.z.sigmoid() * (1 - self.z.sigmoid()) # Using sidmoid() here, is this allowed?
+        return backward.mul(gradwrtoutput[0])
 
 # ----------------------- Loss --------------------- 
 
@@ -389,37 +485,40 @@ class MSE(Module):
         params : ?
             Parameters
         """
-        raise NotImplementedError
+        super().__init__()
+        self.y = None
+        self.target = None
+        self.e = None
+        self.n = None
     
-    def forward (self, *input):
+    def forward (self, prediction, target):
         """MSE loss forward pass
 
         Parameters
         ----------
-        input : torch.tensor
-            The input
+        prediction : torch.tensor
+            The predicted values
+        target : torch.tensor
+            The ground truth values
 
         Returns
         -------
         torch.tensor
             The result of applying the MSE
-        """
-        raise NotImplementedError
+        """        
+        self.e = (prediction - target.view(-1, 1))
+        self.n = prediction.size(0)        
+        return self.e.pow(2).mean()
         
-    def backward(self, *gradwrtoutput):
+    def backward(self):
         """MSE loss backward pass
-
-        Parameters
-        ----------
-        gradwrtoutput : torch.tensor
-            The gradients wrt the module's output
 
         Returns
         -------
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        return (2.0 / self.n) * self.e 
 
 # -------------------- Optimizer ------------------- 
 
@@ -435,20 +534,27 @@ class SGD():
         Reset the trainable parameter gradients to zero
     """
     
-    def __init__(self):
+    def __init__(self, params, lr):
         """SGD constructor
               
         Parameters
         ----------
-        params : ?
-            Parameters
+        params : iterable
+            Iterable of parameters to optimize
+        lr: float
+            Learning rate
         """
-        raise NotImplementedError
+        self.params = params
+        self.lr = lr
     
     def step(self):
         """Perform a SGD step"""
-        raise NotImplementedError
+        for param, grad  in self.params:
+            if (param is not None) and (grad is not None):
+                param.sub_(grad, alpha=self.lr)
         
     def zero_grad(self):    
         """Reset the trainable parameter gradients to zero"""
-        raise NotImplementedError
+        for param, grad in self.params:
+            if (param is not None) and (grad is not None):
+                grad.zero_()
