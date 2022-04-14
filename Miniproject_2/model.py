@@ -229,6 +229,9 @@ class Linear(Module):
         """
         return [(self.W, self.gradW), (self.b, self.gradb)]
 
+def make_tuple(value, repetitions=2):
+    return value if type(value) is tuple else tuple(value for _ in range(repetitions))
+
 class Conv2d(Module):
     """
     Convolutional layer class
@@ -242,7 +245,8 @@ class Conv2d(Module):
     param()
         Returns the list of trainable parameters
     """    
-    def __init__(self):
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding, dilation, use_bias=True):
         """Convolution constructor
         
         Parameters
@@ -250,7 +254,17 @@ class Conv2d(Module):
         params : ?
             Parameters
         """
-        raise NotImplementedError
+        super().__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = make_tuple(kernel_size)
+        self.stride = make_tuple(stride)
+        self.padding = padding
+        self.dilation = dilation
+        self.use_bias = use_bias
+        self.weight = torch.empty(out_channels, in_channels, kernel_size[0], kernel_size[1])
+        self.bias = torch.empty(out_channels)
+        self.reset_params()
     
     def forward(self, *input):
         """Convolutional layer forward pass
@@ -290,7 +304,15 @@ class Conv2d(Module):
         list
             The list of trainable parameters
         """
-        return []    
+        return []   
+
+    def reset_params(self):
+        for k in self.kernel_size:
+            n *= k
+        stdv = 1. / math.sqrt(n)
+        self.weight.uniform_(-stdv, stdv)
+        if self.bias is not None:
+            self.bias.uniform_(-stdv, stdv)  
 
 class NearestUpsampling(Module):
     """
