@@ -174,16 +174,11 @@ class Linear(Module):
             Default value of all weights (default is None)
         """
         super().__init__()
-        if init_val is not None:
-            self.W = torch.full((input_size, output_size), fill_value=init_val)
-            self.b = torch.full(size=(output_size,), fill_value=init_val)
-        else:
-            stdv = 1. / math.sqrt(input_size)
-            self.W = torch.empty(input_size, output_size).uniform_(-stdv, stdv)
-            self.b = torch.empty(output_size).uniform_(-stdv, stdv)
-            
-        self.gradW = torch.zeros(input_size, output_size)
-        self.gradb = torch.zeros(output_size)
+        self.W = torch.empty(input_size, output_size)
+        self.b = torch.empty(output_size)
+        self.gradW = torch.empty(input_size, output_size)
+        self.gradb = torch.empty(output_size)
+        self.reset_params(input_size, init_val)
     
     def forward(self, *input):
         """Linear layer forward pass
@@ -228,6 +223,18 @@ class Linear(Module):
             The list of trainable parameters
         """
         return [(self.W, self.gradW), (self.b, self.gradb)]
+
+    def reset_params(self, input_size, init_val=None):
+        """Resets the trainable parameters of the linear layer"""
+        if init_val is not None:
+            self.W.fill_(init_val)
+            self.b.fill_(init_val)
+        else:
+            stdv = 1. / math.sqrt(input_size)
+            self.W = self.W.uniform_(-stdv, stdv)
+            self.b = self.b.uniform_(-stdv, stdv) 
+        self.gradW.zero_()
+        self.gradb.zero_()
 
 def make_tuple(value, repetitions=2):
     return value if type(value) is tuple else tuple(value for _ in range(repetitions))
@@ -307,6 +314,7 @@ class Conv2d(Module):
         return []   
 
     def reset_params(self):
+        """Resets the trainable parameters of the convolutional layer"""
         for k in self.kernel_size:
             n *= k
         stdv = 1. / math.sqrt(n)
