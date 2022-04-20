@@ -19,13 +19,7 @@ class Module(object):
     """
     
     def __init__(self):
-        """Constructor  
-
-        Parameters
-        ----------
-        params : ?
-            Parameters
-        """
+        """Constructor"""
         pass
     
     def forward(self, *input):
@@ -73,6 +67,13 @@ class Module(object):
 class Sequential(Module):
     """
     Sequential model architecture class
+
+    Attributes
+    ----------
+    modules : list
+        a list of the sequential module's modules stored in forward sequential order
+    params : list
+        a list of all the trainable parameters of the sequential module
 
     Methods
     -------
@@ -151,6 +152,17 @@ class Linear(Module):
     """
     Linear layer class
 
+    Attributes
+    ----------
+    Weight : torch.tensor 
+        the weight tensor of the linear layer
+    bias : torch.tensor
+        the bias tensor of the linear layer
+    grad_Weight: torch.tensor
+        the gradient of the loss wrt the weight matrix 
+    grad_bias: torch.tensor
+        the gradient of the loss wrt the bias 
+
     Methods
     -------
     forward(input)
@@ -159,6 +171,9 @@ class Linear(Module):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
+    reset_params(input_size, init_val)
+        Resets the trainable parameters of the linear layer
+
     """
     
     def __init__(self, input_size, output_size, init_val=None):
@@ -176,8 +191,8 @@ class Linear(Module):
         super().__init__()
         self.Weight = torch.empty(input_size, output_size)
         self.bias = torch.empty(output_size)
-        self.gradW = torch.empty(input_size, output_size)
-        self.gradb = torch.empty(output_size)
+        self.grad_Weight = torch.empty(input_size, output_size)
+        self.grad_bias = torch.empty(output_size)
         self.reset_params(input_size, init_val)
     
     def forward(self, *input):
@@ -210,8 +225,8 @@ class Linear(Module):
             The gradient of the loss wrt the input
         """
         grad = gradwrtoutput[0].clone()
-        self.gradW.add_(self.input.t().mm(grad))
-        self.gradb.add_(grad.sum(0))
+        self.grad_Weight.add_(self.input.t().mm(grad))
+        self.grad_bias.add_(grad.sum(0))
         return grad.mm(self.Weight.t()) 
         
     def param(self):
@@ -220,12 +235,20 @@ class Linear(Module):
         Returns
         -------
         list
-            The list of trainable parameters
+            The list of trainable parameters and their gradients
         """
-        return [(self.Weight, self.gradW), (self.bias, self.gradb)]
+        return [(self.Weight, self.grad_Weight), (self.bias, self.grad_bias)]
 
     def reset_params(self, input_size, init_val=None):
-        """Resets the trainable parameters of the linear layer"""
+        """Resets the trainable parameters of the linear layer
+        
+        Parameters
+        ----------
+        input_size : int
+            The size of the input
+        init_val: 
+            Default value of all weights (default is None)
+        """
         if init_val is not None:
             self.Weight.fill_(init_val)
             self.bias.fill_(init_val)
@@ -233,8 +256,8 @@ class Linear(Module):
             stdv = 1. / math.sqrt(input_size)
             self.Weight = self.Weight.uniform_(-stdv, stdv)
             self.bias = self.bias.uniform_(-stdv, stdv) 
-        self.gradW.zero_()
-        self.gradb.zero_()
+        self.grad_Weight.zero_()
+        self.grad_bias.zero_()
 
 def make_tuple(value, repetitions=2):
     return value if type(value) is tuple else tuple(value for _ in range(repetitions))
@@ -242,6 +265,18 @@ def make_tuple(value, repetitions=2):
 class Conv2d(Module):
     """
     Convolutional layer class
+
+    Attributes
+    ----------
+    Weight : torch.tensor 
+        the weight tensor of the convolutional layer
+    bias : torch.tensor
+        the bias tensor of the convolutional layer
+    grad_Weight: torch.tensor
+        the gradient of the loss wrt the weight matrix 
+    grad_bias: torch.tensor
+        the gradient of the loss wrt the bias 
+    more: TODO
 
     Methods
     -------
@@ -251,6 +286,8 @@ class Conv2d(Module):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
+    reset_params()
+        Resets the trainable parameters of the convolutional layer
     """    
     def __init__(self, in_channels, out_channels, kernel_size, stride,
                  padding, dilation, use_bias=True):
@@ -269,8 +306,10 @@ class Conv2d(Module):
         self.padding = padding
         self.dilation = dilation
         self.use_bias = use_bias
-        self.Weighteight = torch.empty(out_channels, in_channels, kernel_size[0], kernel_size[1])
-        self.biasias = torch.empty(out_channels)
+        self.Weight = torch.empty(out_channels, in_channels, kernel_size[0], kernel_size[1])
+        self.bias = torch.empty(out_channels)
+        self.grad_Weight = torch.empty(in_channels, out_channels, kernel_size, kernel_size[0], kernel_size[1])
+        self.grad_bias = torch.empty(out_channels)
         self.reset_params()
     
     def forward(self, *input):
@@ -318,9 +357,9 @@ class Conv2d(Module):
         for k in self.kernel_size:
             n *= k
         stdv = 1. / math.sqrt(n)
-        self.Weighteight.uniform_(-stdv, stdv)
-        if self.biasias is not None:
-            self.biasias.uniform_(-stdv, stdv)  
+        self.Weight.uniform_(-stdv, stdv)
+        if self.bias is not None:
+            self.bias.uniform_(-stdv, stdv)  
 
 class NearestUpsampling(Module):
     """
@@ -391,6 +430,11 @@ class ReLU(Module):
     """
     ReLU activation function class
 
+    Attributes
+    ----------
+    input : torch.tensor 
+        the input of the ReLU module
+
     Methods
     -------
     forward(input)
@@ -419,7 +463,7 @@ class ReLU(Module):
         """
         self.input = input[0].clone()
         return self.input.clamp(0)
-        # return input[0].relu() # (or just call relu(), is this allowed?)
+        # return input[0].relu() # (using relu(), is this allowed?)
         
     def backward(self, *gradwrtoutput):
         """ReLU backward pass
@@ -435,12 +479,17 @@ class ReLU(Module):
             The gradient of the loss wrt the module's input
         """
         backward = self.input.sign().clamp(0)
-        # backward = self.input.relu().sign() (or just call relu(), is this allowed?)
+        # backward = self.input.relu().sign() # (using relu(), is this allowed?)
         return backward.mul(gradwrtoutput[0])
 
 class Sigmoid(Module):
     """
     Sigmoid activation function class
+
+    Attributes
+    ----------
+    input : torch.tensor 
+        the input of the sigmoid module
 
     Methods
     -------
@@ -451,13 +500,7 @@ class Sigmoid(Module):
     """
     
     def __init__(self):
-        """Sigmoid constructor 
-              
-        Parameters
-        ----------
-        params : ?
-            Parameters
-        """
+        """Sigmoid constructor"""
         super().__init__()
         self.input = None
     
@@ -475,7 +518,7 @@ class Sigmoid(Module):
             The result of applying the sigmoid function
         """
         self.input = input[0].clone()
-        return input[0].sigmoid() # Using sidmoid() here, is this allowed?
+        return input[0].sigmoid() # Using sidmoid() here, is this allowed or do we need to implement from scratch?
         
     def backward(self, *gradwrtoutput):
         """Sigmoid backward pass
@@ -490,7 +533,7 @@ class Sigmoid(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        backward = self.input.sigmoid() * (1 - self.input.sigmoid()) # Using sidmoid() here, is this allowed?
+        backward = self.input.sigmoid() * (1 - self.input.sigmoid()) # Using sidmoid() here, is this allowed or do we need to implement from scratch?
         return backward.mul(gradwrtoutput[0])
 
 # ----------------------- Loss --------------------- 
@@ -498,6 +541,11 @@ class Sigmoid(Module):
 class MSE(Module):
     """
     MSE loss class
+
+    Attributes
+    ----------
+    error : torch.tensor 
+        the error between the predicted and target values
 
     Methods
     -------
@@ -508,16 +556,9 @@ class MSE(Module):
     """
     
     def __init__(self):
-        """MSE loss constructor
-              
-        Parameters
-        ----------
-        params : ?
-            Parameters
-        """
+        """MSE loss constructor"""
         super().__init__()
         self.error = None
-        self.num_samples = None
     
     def forward (self, prediction, target):
         """MSE loss forward pass
@@ -535,7 +576,6 @@ class MSE(Module):
             The result of applying the MSE
         """      
         self.error = prediction - target
-        self.num_samples = prediction.size(0)        
         return self.error.pow(2).mean()
         
     def backward(self):
@@ -546,7 +586,7 @@ class MSE(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        return (2.0 / self.num_samples) * self.error 
+        return (2.0 / self.error.numel()) * self.error 
 
 # -------------------- Optimizer ------------------- 
 
@@ -554,6 +594,13 @@ class SGD():
     """
     Stochastic gradient descent (SGD) class
 
+    Attributes
+    ----------
+    params : iterable
+        the list of trainable parameters to apply SGD to
+    lr: float
+        the learning rate
+    
     Methods
     -------
     step()
@@ -577,7 +624,7 @@ class SGD():
     
     def step(self):
         """Perform a SGD step"""
-        for param, grad  in self.params:
+        for param, grad in self.params:
             if (param is not None) and (grad is not None):
                 param.sub_(grad, alpha=self.lr)
         
