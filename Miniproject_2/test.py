@@ -47,7 +47,7 @@ class Testing(unittest.TestCase):
             model_torch.fc2.bias = nn.Parameter(torch.full_like(model_torch.fc2.bias, init_val))
 
         # Training parameters and variables
-        lr, nb_epochs, batch_size = 1e-1, 1, 20
+        lr, nb_epochs, batch_size = 1e-1, 10, 20
 
         optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
         criterion_no_torch = MSE()
