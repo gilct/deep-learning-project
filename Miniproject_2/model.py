@@ -814,3 +814,125 @@ class SGD():
         for param, grad in self.params:
             if (param is not None) and (grad is not None):
                 grad.zero_()
+
+# ---------------------- Model --------------------- 
+
+class Model():
+    """
+    Model class
+
+    Attributes
+    ----------
+    nb_epochs : int
+        the number of epochs to train for
+    batch_size : int
+        the size of the batches to use during training
+    model : Module
+        the network to use for training and predicting
+    optimizer : SGD
+        the optimizer to use during training
+    criterion : Module
+        the criterion to use during training
+
+    Methods
+    -------
+    load_pretrained_model()
+        Load a pretrained model
+    train(train_input, train_target)
+        Runs the training procedure
+    predict(test_input)
+        Generates a prediction on the input
+    """
+
+    def __init__(self) -> None:
+        """Model constructor"""
+        in_channels = 3
+        hidden_dim_1, hidden_dim_2, out_dim = 3, 2, 1
+        out_channels_1, out_channels_2 = 5, 3
+        kernel_size_1, kernel_size_2 = (2, 4), (2, 4)
+        stride_1, stride_2 = 3, 15
+        lr, self.nb_epochs, self.batch_size = 1e-1, 9, 47
+        self.model = Sequential(Conv2d(in_channels = in_channels, 
+                                       out_channels = out_channels_1, 
+                                       kernel_size = kernel_size_1, 
+                                       stride = stride_1),
+                                ReLU(),
+                                Conv2d(in_channels = out_channels_1, 
+                                       out_channels = out_channels_2, 
+                                       kernel_size = kernel_size_2, 
+                                       stride = stride_2),
+                                ReLU(),
+                                Linear(hidden_dim_1,
+                                       hidden_dim_2),
+                                ReLU(),
+                                Linear(hidden_dim_2,
+                                       out_dim),
+                                ReLU())
+        self.optimizer = SGD(self.model.param(), lr=lr)
+        self.criterion = MSE()
+
+    def load_pretrained_model(self) -> None:
+        """Loads the parameters saved in bestmodel.pth into the model"""
+        pass
+
+    def train(self, train_input, train_target) -> None:
+        """Runs the training procedure
+
+        Parameters
+        ----------
+        train_input: (N, C, H, W), torch.tensor
+            Tensor containing a noisy version of the images.
+        train_target: (N, C, H, W), torch.tensor
+            Tensor containing another noisy version of the same 
+            images, which only differs from the input by their noise.
+        """
+        for _ in range(self.nb_epochs):
+            for input, targets in zip(train_input.split(self.batch_size),
+                                      train_target.split(self.batch_size)):
+                output = self.model.forward(input)
+                loss = self.criterion.forward(output, targets)
+                self.optimizer.zero_grad()
+                self.model.backward(self.criterion.backward())
+                self.optimizer.step()
+
+    def predict(self, test_input) -> torch.Tensor:
+        """Generates a prediction (denoising) on the input
+
+        Parameters
+        ----------
+        test_input: (N1, C, H, W), torch.tensor
+            Tensor to be denoised by the network.
+
+        Returns
+        -------
+        torch.tensor, (N1, C, H, W) 
+            The denoised `test_input`
+        """
+        return self.model.forward(test_input)
+
+def example_run():
+
+    SEED = 2022
+    torch.manual_seed(SEED)
+
+    moddy = Model()
+
+    # Define dimensions of data
+    in_channels, height, width = 3, 32, 32
+    n_samples = 237
+    out_dim = 1
+
+    # Parameters of distribution of inputs and targets
+    mean, std = 0, 20
+    unif_lower, unif_upper = 10, 15
+    train_input = empty(n_samples, in_channels, height, width).normal_(mean, std)
+    train_targets = empty(n_samples, out_dim).uniform_(unif_lower,unif_upper)
+
+    # Normalize data
+    mu, std = train_input.mean(), train_input.std()
+    train_input.sub_(mu).div_(std)
+
+    # Train and predict
+    moddy.train(train_input, train_targets)
+    pred = moddy.predict(train_input[9][None, :])
+    print(pred)
