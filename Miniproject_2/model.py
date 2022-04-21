@@ -521,6 +521,7 @@ class Conv2d(Module):
 
     def reset_params(self, init_val=None):
         """Resets the trainable parameters of the convolutional layer
+        according to: https://discuss.pytorch.org/t/what-is-the-default-initialization-of-a-conv2d-layer-and-linear-layer/16055/2
         
         Parameters
         ----------
