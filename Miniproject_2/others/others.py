@@ -55,8 +55,8 @@ def compute_conv_output_shape(in_dim,
 
     return (h_out, w_out)
 
-def nn_intorchelate(tensor, scale_factor=2):
-    """Nearest neighbor interpolation
+def nn_upsampling(tensor, scale_factor=2):
+    """Nearest neighbor upsampling
 
     Parameters
     ----------
