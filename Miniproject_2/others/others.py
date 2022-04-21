@@ -1,6 +1,8 @@
+from torch import arange
+
 def make_tuple(value, repetitions=2):
     """Helper function for generating a value as a
-    tuple if it isn't already.
+    tuple if it isn't already
 
     Parameters
     ----------
@@ -12,7 +14,7 @@ def make_tuple(value, repetitions=2):
     Returns
     -------
     tuple
-        The generated tuple.
+        The generated tuple
     """
     return value if type(value) is tuple else tuple(value for _ in range(repetitions))
 
@@ -22,7 +24,7 @@ def compute_conv_output_shape(in_dim,
                               padding,
                               dilation):
     """Computes the output shapes (height and width) of
-    a convolution operation.
+    a convolution operation
 
     Parameters
     ----------
@@ -40,7 +42,7 @@ def compute_conv_output_shape(in_dim,
     Returns
     -------
     tuple
-        The height and width of the result of the convolution.
+        The height and width of the result of the convolution
     """
     h_in, w_in = in_dim
     h_filter, w_filter = kernel_size
@@ -52,3 +54,23 @@ def compute_conv_output_shape(in_dim,
     w_out = (w_in + 2 * w_padding - w_dilation * (w_filter - 1 ) - 1) // w_stride + 1
 
     return (h_out, w_out)
+
+def nn_intorchelate(tensor, scale_factor=2):
+    """Nearest neighbor interpolation
+
+    Parameters
+    ----------
+    tensor : torch.tensor
+        The tensor to perform nearest neighbor upsampling on
+    scale_factor : int, optional
+        Factor by which to scale the input's size (default is 2)
+
+    Returns
+    -------
+    torch.tensor
+        The tensor with the nearest neighbor upsampling applied to it
+    """
+    old_size = tensor.size()
+    row_idx = ((arange(1, 1 + int(old_size[0]*scale_factor))/scale_factor).ceil() - 1).long()
+    col_idx = ((arange(1, 1 + int(old_size[1]*scale_factor))/scale_factor).ceil() - 1).long()
+    return tensor[:, col_idx][row_idx, :]
