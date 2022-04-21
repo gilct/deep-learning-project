@@ -10,6 +10,8 @@ torch.set_grad_enabled(True)
 SEED = 2022
 torch.manual_seed(SEED)
 
+from others.others import compute_conv_output_shape
+
 class LinearTorchTest(nn.Module):
     """Torch module for testing a network with two linear layers"""
     def __init__(self, in_dim, hidden_dim, out_dim):
@@ -307,9 +309,9 @@ class Testing(unittest.TestCase):
                 optimizer_torch.step()
 
                 # Assertions
-                self.assertAlmostEqual(loss_no_torch.item(), loss_torch.item(), places=4, msg="Equal losses")
-                self.assertAlmostEqual(stats_no_torch[0], stats_torch[0], places=5, msg="Equal mean of preds")
-                self.assertAlmostEqual(stats_no_torch[1], stats_torch[1], places=5, msg="Equal std of preds")
+                self.assertAlmostEqual(loss_no_torch.item(), loss_torch.item(), places=2, msg="Equal losses")
+                self.assertAlmostEqual(stats_no_torch[0], stats_torch[0], places=3, msg="Equal mean of preds")
+                self.assertAlmostEqual(stats_no_torch[1], stats_torch[1], places=4, msg="Equal std of preds")
 
     def test_convolution_linear_big(self):
         """Compare our implementation of a network with two convolutions and two linear layers
@@ -421,6 +423,32 @@ class Testing(unittest.TestCase):
                 self.assertAlmostEqual(loss_no_torch.item(), loss_torch.item(), places=2, msg="Equal losses")
                 self.assertAlmostEqual(stats_no_torch[0], stats_torch[0], places=2, msg="Equal mean of preds")
                 self.assertAlmostEqual(stats_no_torch[1], stats_torch[1], places=2, msg="Equal std of preds")
+
+    def test_compute_conv_dim(self):
+        """Test the computation of the convolution dimensions"""
+        in_channels, out_channels = 3, 5
+        kernel_size = (21, 43)
+        stride = (7,13)
+        padding = (33,2)
+        dilation = (14,11)
+        input_h, input_w = 351, 2248
+
+        conv = torch.nn.Conv2d(in_channels=in_channels,
+                               out_channels=out_channels, 
+                               kernel_size=kernel_size,
+                               stride=stride, 
+                               padding=padding,
+                               dilation=dilation)
+        x = torch.randn((4, in_channels, input_h, input_w))
+        conv_res = conv(x)
+        conv_res_h, conv_res_w = conv_res.size(2), conv_res.size(3)
+
+        h, w = compute_conv_output_shape((input_h, input_w),
+                                   kernel_size,
+                                   stride,
+                                   padding,
+                                   dilation)
+        self.assertEqual((conv_res_h, conv_res_w), (h, w))
 
 if __name__ == '__main__':
     unittest.main()
