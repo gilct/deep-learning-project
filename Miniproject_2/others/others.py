@@ -44,11 +44,11 @@ def compute_conv_output_shape(in_dim,
     """
     h_in, w_in = in_dim
     h_filter, w_filter = kernel_size
-    w_stride, h_stride = stride
-    w_padding, h_padding = padding
-    w_dilation, h_dilation = dilation
+    h_stride, w_stride = stride
+    h_padding, w_padding = padding
+    h_dilation, w_dilation = dilation
 
-    h_out = (h_in + 2 * w_padding - w_dilation * (h_filter - 1 ) - 1) // w_stride + 1
-    w_out = (w_in + 2 * h_padding - h_dilation * (w_filter - 1 ) - 1) // h_stride + 1
+    h_out = (h_in + 2 * h_padding - h_dilation * (h_filter - 1 ) - 1) // h_stride + 1
+    w_out = (w_in + 2 * w_padding - w_dilation * (w_filter - 1 ) - 1) // w_stride + 1
 
     return (h_out, w_out)
