@@ -1,7 +1,16 @@
 import math
+from turtle import backward
 from torch import empty
 from torch.nn.functional import fold, unfold
-from others.others import make_tuple, compute_conv_output_shape
+from others.others import make_tuple, \
+                          compute_conv_output_shape, \
+                          compute_upsampling_dim, \
+                          compute_scaling_factor, \
+                          nn_upsampling, \
+                          stride_tensor, \
+                          pad_tensor, \
+                          unpad_tensor, \
+                          unstride_tensor
 
 import torch
 torch.set_grad_enabled(False)
@@ -541,9 +550,23 @@ class Conv2d(Module):
         self.grad_Weight.zero_()
         self.grad_bias.zero_() 
 
+# This module can be thrown away
+# backprop not implemented
 class NearestUpsampling(Module):
     """
-    Upsampling layer class
+    Upsampling layer class implemented using
+    nearest neighbor upsampling and convolution.
+
+    Attributes
+    ----------
+    input_dim : int
+        dimensions (h,w) of the input image
+    out_dim : int
+        dimensions (h,w) of the upsampled image
+    in_channels : int
+        number of channels in the input image
+    out_channels : int
+        number of channels produced by the upsampling
 
     Methods
     -------
@@ -554,16 +577,33 @@ class NearestUpsampling(Module):
     param()
         Returns the list of trainable parameters
     """    
-    def __init__(self):
+    def __init__(self, input_dim, out_dim, in_channels, 
+                 out_channels, init_val=None):
         """Upsampler constructor
         
         Parameters
         ----------
-        params : ?
-            Parameters
+        input_dim : int
+            Dimensions (h,w) of the input image
+        out_dim : int
+            Dimensions (h,w) of the upsampled image
+        in_channels : int
+            Number of channels in the input image
+        out_channels : int
+            Number of channels produced by the upsampling
+        init_val: float, optional
+            Default value of all weights (default is None)
         """
-        raise NotImplementedError
-    
+        self.scale_factor = compute_scaling_factor(out_dim, 
+                                                   input_dim)
+        ker_h, ker_w = compute_upsampling_dim(out_dim, 
+                                              input_dim, 
+                                              self.scale_factor)
+        self.conv = Conv2d(in_channels,
+                           out_channels,
+                           (ker_h, ker_w),
+                           init_val=init_val)
+
     def forward(self, *input):
         """Upsampling layer forward pass
 
@@ -577,8 +617,8 @@ class NearestUpsampling(Module):
         torch.tensor
             The result of applying upsampling
         """
-        raise NotImplementedError
-        
+        return self.conv.forward(nn_upsampling(input[0].clone(), self.scale_factor))
+
     def backward(self, *gradwrtoutput):
         """Upsampling layer backward pass
 
@@ -592,7 +632,7 @@ class NearestUpsampling(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        return self.conv.backward(gradwrtoutput) 
         
     def param(self):
         """Returns the trainable parameters of the upsampling layer
@@ -602,7 +642,124 @@ class NearestUpsampling(Module):
         list
             The list of trainable parameters
         """
-        return []  
+        return self.conv.param()
+
+class TransposeConv2d(Module): 
+    """
+    Transpose convolution layer class implemented using
+    border zero padding and convolution.
+
+    Attributes
+    ----------
+    kernel_size : tuple
+        size of the convolving kernel
+    stride : tuple
+        stride of the convolution
+    padding : tuple
+        zero padding to be added on both sides of input
+    dilation : tuple
+        controls the stride of elements within the neighborhood
+    conv : Module
+        the convolution module
+
+    Methods
+    -------
+    forward(input)
+        Runs the forward pass
+    backward(gradwrtoutput)
+        Runs the backward pass
+    param()
+        Returns the list of trainable parameters
+    """    
+    def __init__(self, in_channels, out_channels, 
+                 kernel_size, stride=1, padding=0,
+                 dilation=1, init_val=None):
+        """Transpose convolution constructor
+        
+        Parameters
+        ----------
+        in_channels : int
+            Number of channels in the input image
+        out_channels : int
+            Number of channels produced by the transpose
+            convolution
+        kernel_size : int or tuple
+            Size of the convolving kernel
+        stride : int or tuple, optional
+            Stride of the transpose convolution (default is 1)
+        padding : int or tuple, optional
+            Implicit zero padding to be added on both sides of 
+            input (default is 0)
+        dilation : int or tuple, optional
+            Controls the stride of elements within the 
+            neighborhood (default is 1)
+        init_val: float, optional
+            Default value of all weights (default is None)
+        """            
+        self.kernel_size = make_tuple(kernel_size)
+        self.stride = make_tuple(stride)
+        self.padding = make_tuple(padding)
+        self.dilation = make_tuple(dilation)
+        self.conv = Conv2d(in_channels=in_channels,
+                           out_channels=out_channels,
+                           kernel_size=self.kernel_size,
+                           dilation=self.dilation,
+                           init_val=init_val)
+        self.input_shape = None
+
+    def forward(self, *input):
+        """Transpose convolution layer forward pass
+
+        Parameters
+        ----------
+        input : torch.tensor
+            The input
+
+        Returns
+        -------
+        torch.tensor
+            The result of applying transpose convolution
+        """
+        in_ = input[0].clone()
+        self.input_shape = in_.shape
+        strided = stride_tensor(in_, self.stride)
+        pad_k_h = self.kernel_size[0] + (self.kernel_size[0]-1)*(self.dilation[0]-1)
+        pad_k_w = self.kernel_size[1] + (self.kernel_size[1]-1)*(self.dilation[1]-1)
+        padded = pad_tensor(strided, (pad_k_h, pad_k_w), self.padding)
+        self.formatted = padded
+        return self.conv.forward(padded)
+
+    def backward(self, *gradwrtoutput):
+        """Transpose layer backward pass
+
+        Parameters
+        ----------
+        gradwrtoutput : torch.tensor
+            The gradients wrt the module's output
+
+        Returns
+        -------
+        torch.tensor
+            The gradient of the loss wrt the module's input
+        """
+        grad = gradwrtoutput[0].clone()
+        grad_from_conv = self.conv.backward(grad)
+        unstrided_grad = unstride_tensor(grad_from_conv, 
+                                         self.stride)
+        unpadded_grad = unpad_tensor(unstrided_grad,
+                                     self.input_shape)
+        return unpadded_grad
+        
+    def param(self):
+        """Returns the trainable parameters of the transpose
+        comvolution layer
+
+        Returns
+        -------
+        list
+            The list of trainable parameters
+        """
+        return self.conv.param()
 
 # --------------- Activation functions ------------- 
 
