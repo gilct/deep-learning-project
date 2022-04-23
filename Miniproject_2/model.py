@@ -661,6 +661,8 @@ class TransposeConv2d(Module):
         controls the stride of elements within the neighborhood
     conv : Module
         the convolution module
+    input_shape : torch.size
+        the shape of the input to the module
 
     Methods
     -------
