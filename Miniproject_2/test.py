@@ -13,12 +13,11 @@ torch.set_grad_enabled(True)
 SEED = 2022
 torch.manual_seed(SEED)
 
-from others.others import compute_conv_output_shape
 from others.test_helpers import *
 
 class Testing(unittest.TestCase):
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_linear(self):
         # """Compare our implementation of a network 
         # with two linear layers with equivalent torch model."""
@@ -64,7 +63,7 @@ class Testing(unittest.TestCase):
         train_input.sub_(mu).div_(std)
 
         loss_places = 4
-        stats_mean_place = 5 
+        stats_mean_placess = 5 
         stats_std_places = 6
 
         train_and_assert(self, nb_epochs, batch_size, 
@@ -72,10 +71,10 @@ class Testing(unittest.TestCase):
                          model_no_torch, model_torch, 
                          criterion_no_torch, criterion_torch, 
                          optimizer_no_torch, optimizer_torch,
-                         loss_places, stats_mean_place,
+                         loss_places, stats_mean_placess,
                          stats_std_places)
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_linear_several(self):
         print()
         # """Test linear several"""
@@ -139,7 +138,7 @@ class Testing(unittest.TestCase):
                 failed_once = False
 
                 loss_places = 2
-                stats_mean_place = 3
+                stats_mean_places = 3
                 stats_std_places = 3
 
                 failed_once = train_and_assert(self, nb_epochs, batch_size, 
@@ -147,7 +146,7 @@ class Testing(unittest.TestCase):
                                                model_no_torch, model_torch, 
                                                criterion_no_torch, criterion_torch, 
                                                optimizer_no_torch, optimizer_torch,
-                                               loss_places, stats_mean_place,
+                                               loss_places, stats_mean_places,
                                                stats_std_places, with_try=True)
 
                 if not failed_once:
@@ -157,7 +156,7 @@ class Testing(unittest.TestCase):
 
                 bar()
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_convolution_only(self):
         # """Test convolution"""
         # """Compare our implementation of a network 
@@ -207,7 +206,7 @@ class Testing(unittest.TestCase):
         train_input.sub_(mu).div_(std)
 
         loss_places = 4
-        stats_mean_place = 5 
+        stats_mean_places = 5 
         stats_std_places = 6
 
         train_and_assert(self, nb_epochs, batch_size, 
@@ -215,10 +214,10 @@ class Testing(unittest.TestCase):
                          model_no_torch, model_torch, 
                          criterion_no_torch, criterion_torch, 
                          optimizer_no_torch, optimizer_torch,
-                         loss_places, stats_mean_place,
+                         loss_places, stats_mean_places,
                          stats_std_places)
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_convolution_linear_small(self):
         # """Test convolution + linear small"""
         # """Compare our implementation of a network 
@@ -276,7 +275,7 @@ class Testing(unittest.TestCase):
         train_input.sub_(mu).div_(std)
 
         loss_places = 2
-        stats_mean_place = 3 
+        stats_mean_places = 3 
         stats_std_places = 4
 
         train_and_assert(self, nb_epochs, batch_size, 
@@ -284,10 +283,10 @@ class Testing(unittest.TestCase):
                          model_no_torch, model_torch, 
                          criterion_no_torch, criterion_torch, 
                          optimizer_no_torch, optimizer_torch,
-                         loss_places, stats_mean_place,
+                         loss_places, stats_mean_places,
                          stats_std_places)
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_convolution_linear_big(self):
         # """Test convolution + linear big"""
         # """Compare our implementation of a network 
@@ -361,7 +360,7 @@ class Testing(unittest.TestCase):
         train_input.sub_(mu).div_(std)
 
         loss_places = 2
-        stats_mean_place = 2
+        stats_mean_places = 2
         stats_std_places = 2
 
         train_and_assert(self, nb_epochs, batch_size, 
@@ -369,10 +368,10 @@ class Testing(unittest.TestCase):
                          model_no_torch, model_torch, 
                          criterion_no_torch, criterion_torch, 
                          optimizer_no_torch, optimizer_torch,
-                         loss_places, stats_mean_place,
+                         loss_places, stats_mean_places,
                          stats_std_places)
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_compute_conv_dim(self):
         print()
         # """Test convolution dimensions"""
@@ -441,7 +440,7 @@ class Testing(unittest.TestCase):
         # Make sure we have equal number of torch convs as our convs
         self.assertEqual(torch_count, my_count)
             
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_upsampling(self):
         print()
         # """Test upsampling"""
@@ -509,7 +508,7 @@ class Testing(unittest.TestCase):
         # Make sure we have equal number of torch convs as our convs
         self.assertEqual(torch_count, my_count)
         
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_transpose_conv(self):
 
         tests_to_run = 500
@@ -657,7 +656,7 @@ class Testing(unittest.TestCase):
         print(f'{my_count}/{tests_to_run} runs had compatible convolution shapes')
         print(f'{my_t_count}/{tests_to_run} runs had compatible transpose convolution shapes')
     
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_simple_transpose_conv(self):
         # """Tests a simple double convolution followed 
         # by double transpose convolution with same kernels."""
@@ -749,13 +748,12 @@ class Testing(unittest.TestCase):
             print(f'            No Torch --> {list(no_torch_t_convolved_2.shape)}')
 
     # @unittest.skip("demonstrating skipping")
-    # not run yet skip for now
     def test_transpose_conv_grad(self):
         n_samples, channels, h, w = 20, 3, 32, 48
         out_ch_conv1, out_ch_conv2 = 32, 64
         kernel_size = (2,2)
         stride = 2
-        torch.manual_seed(2023)
+        torch.manual_seed(2022)
         train_input = torch.randn(n_samples, channels, h, w)
         train_targets = train_input + 0.3
         init_val = 0.01
@@ -776,6 +774,7 @@ class Testing(unittest.TestCase):
                                                 out_channels=channels, 
                                                 kernel_size=kernel_size, 
                                                 stride=stride)
+        torch_relu = nn.ReLU()
 
         torch_conv1.apply(init_weights_wrapper(init_val=init_val))
         torch_conv2.apply(init_weights_wrapper(init_val=init_val))
@@ -802,9 +801,11 @@ class Testing(unittest.TestCase):
                                         kernel_size=kernel_size, 
                                         stride=stride,
                                         init_val=init_val) 
-        
-        model_no_torch = Sequential(no_torch_conv1, no_torch_conv2, no_torch_t_conv1, no_torch_t_conv2)
-        model_torch = nn.Sequential(torch_conv1, torch_conv2, torch_t_conv1, torch_t_conv2)
+        no_torch_relu_1 = ReLU()
+        no_torch_relu_2 = ReLU()
+
+        model_no_torch = Sequential(no_torch_conv1, no_torch_conv2, no_torch_relu_1, no_torch_t_conv1, no_torch_relu_2, no_torch_t_conv2)
+        model_torch = nn.Sequential(torch_conv1, torch_conv2, torch_relu, torch_t_conv1, torch_relu, torch_t_conv2)
 
         # Training parameters and variables
         lr, nb_epochs, batch_size = 1e-1, 10, 20
@@ -819,59 +820,117 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 4
-        stats_mean_places = 5 
-        stats_std_places = 6
+        loss_places = 3
+        stats_mean_placess = 3
+        stats_std_places = 3
 
-        for _ in range(nb_epochs):
-            for input, targets in zip(train_input.split(batch_size),
-                                        train_targets.split(batch_size)):
-                output_no_torch = model_no_torch.forward(input)
-                output_torch = model_torch(input)
+        train_and_assert(self, nb_epochs, batch_size, 
+                         train_input, train_targets,
+                         model_no_torch, model_torch, 
+                         criterion_no_torch, criterion_torch, 
+                         optimizer_no_torch, optimizer_torch,
+                         loss_places, stats_mean_placess,
+                         stats_std_places)
+    
+    # @unittest.skip("demonstrating skipping")
+    def test_transpose_conv_grad_diff_shapes(self):
 
-                # Retain grad for comparing MSE gradients, see below
-                # output_torch.retain_grad()
+        n_samples, channels, h, w = 20, 3, 32, 48
+        out_ch_conv1, out_ch_conv2 = 32, 64
+        kernel_size = (4,2)
+        stride = (2,3)
+        torch.manual_seed(2022)
+        train_input = torch.randn(n_samples, channels, h, w)
+        train_targets = torch.randn(n_samples, channels, 21, 45) # pre-determined to be output shape  
+        init_val = 0.01
+        dilation = (2,2)
+        padding = (3,0)
 
-                # Store statistics (mean and std) of the output for comparison
-                stats_no_torch = (output_no_torch.mean().item(), 
-                                output_no_torch.std().item())
-                stats_torch = (output_torch.mean().item(), 
-                            output_torch.std().item())
+        torch_conv1 = nn.Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size, 
+                                stride=stride)
+        torch_conv2 = nn.Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size, 
+                                stride=stride)
+        torch_t_conv1 = torch.nn.ConvTranspose2d(in_channels=out_ch_conv2, 
+                                                out_channels=out_ch_conv1, 
+                                                kernel_size=kernel_size, 
+                                                stride=stride,
+                                                dilation=dilation,
+                                                padding=padding)
+        torch_t_conv2 = torch.nn.ConvTranspose2d(in_channels=out_ch_conv1, 
+                                                out_channels=channels, 
+                                                kernel_size=kernel_size, 
+                                                stride=stride,
+                                                dilation=dilation,
+                                                padding=padding)
+        torch_relu = nn.ReLU()
 
-                loss_no_torch = criterion_no_torch.forward(output_no_torch, targets)
-                loss_torch = criterion_torch(output_torch, targets)   
+        torch_conv1.apply(init_weights_wrapper(init_val=init_val))
+        torch_conv2.apply(init_weights_wrapper(init_val=init_val))
+        torch_t_conv1.apply(init_weights_wrapper(init_val=init_val))
+        torch_t_conv2.apply(init_weights_wrapper(init_val=init_val))
 
-                optimizer_no_torch.zero_grad()
-                optimizer_torch.zero_grad() 
+        no_torch_conv1 = Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size, 
+                                stride=stride,
+                                init_val=init_val)
+        no_torch_conv2 = Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size, 
+                                stride=stride,
+                                init_val=init_val)
+        no_torch_t_conv1 = TransposeConv2d(in_channels=out_ch_conv2, 
+                                        out_channels=out_ch_conv1, 
+                                        kernel_size=kernel_size, 
+                                        stride=stride,
+                                        dilation=dilation,
+                                        padding=padding,
+                                        init_val=init_val)
+        no_torch_t_conv2 = TransposeConv2d(in_channels=out_ch_conv1, 
+                                        out_channels=channels, 
+                                        kernel_size=kernel_size, 
+                                        stride=stride,
+                                        dilation=dilation,
+                                        padding=padding,
+                                        init_val=init_val)
+        no_torch_relu_1 = ReLU()
+        no_torch_relu_2 = ReLU()
 
-                model_no_torch.backward(criterion_no_torch.backward())
-                loss_torch.backward()
+        model_no_torch = Sequential(no_torch_conv1, no_torch_conv2, 
+                                    no_torch_relu_1, no_torch_t_conv1, 
+                                    no_torch_relu_2, no_torch_t_conv2)
+        model_torch = nn.Sequential(torch_conv1, torch_conv2, 
+                                    torch_relu, torch_t_conv1, 
+                                    torch_relu, torch_t_conv2)
 
-                # Compare gradients of MSE (make sure .retain_grad() is called on output_torch)
-                # print(criterion_no_torch.backward())
-                # print(output_torch.grad)
+        # Training parameters and variables
+        lr, nb_epochs, batch_size = 1e-1, 10, 20
 
-                optimizer_no_torch.step()
-                optimizer_torch.step()
+        optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
+        criterion_no_torch = MSE()
 
-                self.assertAlmostEqual(loss_no_torch.item(), 
-                                            loss_torch.item(), 
-                                            places=loss_places, 
-                                            msg="Equal losses")
-                self.assertAlmostEqual(stats_no_torch[0], 
-                                            stats_torch[0],
-                                            places=stats_mean_places, 
-                                            msg="Equal mean of preds")
-                self.assertAlmostEqual(stats_no_torch[1], 
-                                            stats_torch[1], 
-                                            places=stats_std_places, 
-                                            msg="Equal std of preds")
-                
-                print(f'{loss_no_torch, loss_torch}')
-                print(f'{stats_no_torch}')
-                print(f'{stats_torch}')
-                print("-----")
+        optimizer_torch = torch.optim.SGD(model_torch.parameters(), lr=lr)
+        criterion_torch = nn.MSELoss()
 
+        # Standardize data
+        mu, std = train_input.mean(), train_input.std()
+        train_input.sub_(mu).div_(std)
+
+        loss_places = 3
+        stats_mean_placess = 2
+        stats_std_places = 2
+
+        train_and_assert(self, nb_epochs, batch_size, 
+                         train_input, train_targets,
+                         model_no_torch, model_torch, 
+                         criterion_no_torch, criterion_torch, 
+                         optimizer_no_torch, optimizer_torch,
+                         loss_places, stats_mean_placess,
+                         stats_std_places)
 
     
 if __name__ == '__main__':
