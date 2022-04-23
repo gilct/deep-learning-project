@@ -18,6 +18,7 @@ conda create -n deeplearning python=3.9.7
 conda activate deeplearning
 conda install -c pytorch pytorch=1.9.0 torchvision=0.10.0
 conda install -c anaconda jupyter
+pip install alive-progress
 ```
 
 Could be some package errors, can help to simply use default versions of torch
