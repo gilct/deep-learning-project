@@ -1,12 +1,10 @@
 from model import *
 import unittest
-from tqdm import tqdm
 from alive_progress import alive_bar
 from time import sleep
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import empty, randint, randn, rand
 torch.set_grad_enabled(True)
 
@@ -17,7 +15,7 @@ from others.test_helpers import *
 
 class Testing(unittest.TestCase):
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_linear(self):
         # """Compare our implementation of a network 
         # with two linear layers with equivalent torch model."""
@@ -74,7 +72,7 @@ class Testing(unittest.TestCase):
                          loss_places, stats_mean_placess,
                          stats_std_places)
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_linear_several(self):
         print()
         # """Test linear several"""
@@ -132,7 +130,7 @@ class Testing(unittest.TestCase):
                 mu, std = train_input.mean(), train_input.std()
                 train_input.sub_(mu).div_(std)
 
-                bar_text = f'-> Using seed {SEED+i}, Dim{in_dim, hidden_dim, out_dim}, sucess: {sucess_count}/{i}'
+                bar_text = f'-> Using seed {SEED+i}, sucess: {sucess_count}/{i}'
                 bar.text = bar_text
 
                 failed_once = False
@@ -156,7 +154,7 @@ class Testing(unittest.TestCase):
 
                 bar()
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_convolution_only(self):
         # """Test convolution"""
         # """Compare our implementation of a network 
@@ -180,10 +178,10 @@ class Testing(unittest.TestCase):
 
         # Define our model and torch model with same initial value of all weights (for reproducibility)
         init_val = 0.005
-        model_no_torch = Sequential(Conv2d(in_channels = in_channels,
-                                           out_channels = out_channels, 
-                                           kernel_size = kernel_size, 
-                                           stride = stride, 
+        model_no_torch = Sequential(Conv2d(in_channels=in_channels,
+                                           out_channels=out_channels, 
+                                           kernel_size=kernel_size, 
+                                           stride=stride, 
                                            init_val=init_val))
 
         model_torch = ConvolutionTorchTestSmall(in_channels, 
@@ -207,7 +205,7 @@ class Testing(unittest.TestCase):
 
         loss_places = 4
         stats_mean_places = 5 
-        stats_std_places = 6
+        stats_std_places = 7
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -217,7 +215,7 @@ class Testing(unittest.TestCase):
                          loss_places, stats_mean_places,
                          stats_std_places)
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_convolution_linear_small(self):
         # """Test convolution + linear small"""
         # """Compare our implementation of a network 
@@ -243,10 +241,10 @@ class Testing(unittest.TestCase):
 
         # Define our model and torch model with same initial value of all weights (for reproducibility)
         init_val = 0.005
-        model_no_torch = Sequential(Conv2d(in_channels = in_channels,
-                                           out_channels = out_channels,
-                                           kernel_size = kernel_size,
-                                           stride = stride,
+        model_no_torch = Sequential(Conv2d(in_channels=in_channels,
+                                           out_channels=out_channels,
+                                           kernel_size=kernel_size,
+                                           stride=stride,
                                            init_val=init_val),
                                     ReLU(),
                                     Linear(hidden_dim,
@@ -274,9 +272,9 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 2
-        stats_mean_places = 3 
-        stats_std_places = 4
+        loss_places = 4
+        stats_mean_places = 4
+        stats_std_places = 6    
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -286,7 +284,7 @@ class Testing(unittest.TestCase):
                          loss_places, stats_mean_places,
                          stats_std_places)
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_convolution_linear_big(self):
         # """Test convolution + linear big"""
         # """Compare our implementation of a network 
@@ -313,16 +311,16 @@ class Testing(unittest.TestCase):
         # Define our model and torch model with same initial 
         # value of all weights (for reproducibility)
         init_val = 0.005
-        model_no_torch = Sequential(Conv2d(in_channels = in_channels, 
-                                           out_channels = out_channels_1, 
-                                           kernel_size = kernel_size_1, 
-                                           stride = stride_1, 
+        model_no_torch = Sequential(Conv2d(in_channels=in_channels, 
+                                           out_channels=out_channels_1, 
+                                           kernel_size=kernel_size_1, 
+                                           stride=stride_1, 
                                            init_val=init_val),
                                     ReLU(),
-                                    Conv2d(in_channels = out_channels_1, 
-                                           out_channels = out_channels_2, 
-                                           kernel_size = kernel_size_2, 
-                                           stride = stride_2, 
+                                    Conv2d(in_channels=out_channels_1, 
+                                           out_channels=out_channels_2, 
+                                           kernel_size=kernel_size_2, 
+                                           stride=stride_2, 
                                            init_val=init_val),
                                     ReLU(),
                                     Linear(hidden_dim_1,
@@ -359,9 +357,9 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 2
-        stats_mean_places = 2
-        stats_std_places = 2
+        loss_places = 6
+        stats_mean_places = 8
+        stats_std_places = 7
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -371,7 +369,7 @@ class Testing(unittest.TestCase):
                          loss_places, stats_mean_places,
                          stats_std_places)
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_compute_conv_dim(self):
         print()
         # """Test convolution dimensions"""
@@ -401,7 +399,7 @@ class Testing(unittest.TestCase):
                 input_h, input_w = randint(20, 700, (2,), generator=gen).tolist()
                 input = randn(batch_size, in_channels, input_h, input_w, generator=gen)
                 init_val = rand(1, generator=gen).item()
-                
+
                 bar_text = f'-> Using seed {SEED+i},'
                 bar_text += f' --> {torch_count}/{i} Compatible shapes'
                 bar.text = bar_text
@@ -414,13 +412,14 @@ class Testing(unittest.TestCase):
                                              dilation=dilation)
                 torch_conv.apply(init_weights_wrapper(init_val=init_val))
 
-                no_torch_conv = Conv2d(in_channels,
-                                       out_channels,
-                                       kernel_size,
-                                       stride,
-                                       padding,
-                                       dilation,
-                                       init_val)
+                no_torch_conv = Conv2d(in_channels=in_channels,
+                                       out_channels=out_channels,
+                                       kernel_size=kernel_size,
+                                       stride=stride,
+                                       padding=padding,
+                                       dilation=dilation,
+                                       init_val=init_val)
+
                 # Can happen that kernel size / other params simply 
                 # arent't compatible with data shape
                 try:
@@ -440,7 +439,7 @@ class Testing(unittest.TestCase):
         # Make sure we have equal number of torch convs as our convs
         self.assertEqual(torch_count, my_count)
             
-    @unittest.skip("demonstrating skipping")
+    @unittest.skip("NN Upsampling useless given TransposeConv2d")
     def test_upsampling(self):
         print()
         # """Test upsampling"""
@@ -475,12 +474,12 @@ class Testing(unittest.TestCase):
                 bar_text += f' --> {torch_count}/{i} Compatible shapes'
                 bar.text = bar_text
 
-                torch_conv = torch.nn.Conv2d(in_channels, 
-                                             out_channels, 
-                                             kernel_size, 
-                                             stride,
-                                             padding,
-                                             dilation)
+                torch_conv = torch.nn.Conv2d(in_channels=in_channels, 
+                                             out_channels=out_channels, 
+                                             kernel_size=kernel_size, 
+                                             stride=stride,
+                                             padding=padding,
+                                             dilation=dilation)
 
                 try:
                     convolved_torch = torch_conv(original)
@@ -508,7 +507,7 @@ class Testing(unittest.TestCase):
         # Make sure we have equal number of torch convs as our convs
         self.assertEqual(torch_count, my_count)
         
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_transpose_conv(self):
 
         tests_to_run = 500
@@ -556,7 +555,6 @@ class Testing(unittest.TestCase):
 
                 bar_text = f'-> Using seed {SEED+i},'
                 bar_text += f' --> {torch_count}/{i} Compatible shapes'
-                bar_text += f' HxW:{input_h, input_w} k1:{k_size_conv1} k2:{k_size_conv2} k1t:{k_size_t_conv1} k2t:{k_size_t_conv2}'
                 bar.text = bar_text
 
                 torch_conv1 = nn.Conv2d(in_channels=in_ch_conv1, 
@@ -656,7 +654,7 @@ class Testing(unittest.TestCase):
         print(f'{my_count}/{tests_to_run} runs had compatible convolution shapes')
         print(f'{my_t_count}/{tests_to_run} runs had compatible transpose convolution shapes')
     
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("")
     def test_simple_transpose_conv(self):
         # """Tests a simple double convolution followed 
         # by double transpose convolution with same kernels."""
@@ -747,16 +745,18 @@ class Testing(unittest.TestCase):
             print(f'            Torch    --> {list(torch_t_convolved_2.shape)}')
             print(f'            No Torch --> {list(no_torch_t_convolved_2.shape)}')
 
-    # @unittest.skip("demonstrating skipping")
-    def test_transpose_conv_grad(self):
-        n_samples, channels, h, w = 20, 3, 32, 48
+    # @unittest.skip("")
+    def test_transpose_conv_train(self):
+        n_samples, channels, h, w = 20, 1, 32, 48
         out_ch_conv1, out_ch_conv2 = 32, 64
         kernel_size = (2,2)
         stride = 2
         torch.manual_seed(2022)
         train_input = torch.randn(n_samples, channels, h, w)
-        train_targets = train_input + 0.3
-        init_val = 0.01
+
+        # train_input = torch.randint(0,2,(n_samples, channels, h, w)).type(torch.FloatTensor)
+        train_targets = train_input + 0.5
+        init_val = 0.05
 
         torch_conv1 = nn.Conv2d(in_channels=channels, 
                                 out_channels=out_ch_conv1, 
@@ -808,7 +808,7 @@ class Testing(unittest.TestCase):
         model_torch = nn.Sequential(torch_conv1, torch_conv2, torch_relu, torch_t_conv1, torch_relu, torch_t_conv2)
 
         # Training parameters and variables
-        lr, nb_epochs, batch_size = 1e-1, 10, 20
+        lr, nb_epochs, batch_size = 1e-1, 10, 5
 
         optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
         criterion_no_torch = MSE()
@@ -820,9 +820,9 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 3
-        stats_mean_placess = 3
-        stats_std_places = 3
+        loss_places = 6
+        stats_mean_placess = 6
+        stats_std_places = 6
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -832,8 +832,8 @@ class Testing(unittest.TestCase):
                          loss_places, stats_mean_placess,
                          stats_std_places)
     
-    # @unittest.skip("demonstrating skipping")
-    def test_transpose_conv_grad_diff_shapes(self):
+    # @unittest.skip("")
+    def test_transpose_conv_train_diff_shapes(self):
 
         n_samples, channels, h, w = 20, 3, 32, 48
         out_ch_conv1, out_ch_conv2 = 32, 64
@@ -908,7 +908,7 @@ class Testing(unittest.TestCase):
                                     torch_relu, torch_t_conv2)
 
         # Training parameters and variables
-        lr, nb_epochs, batch_size = 1e-1, 10, 20
+        lr, nb_epochs, batch_size = 1e-1, 10, 5
 
         optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
         criterion_no_torch = MSE()
@@ -920,9 +920,9 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 3
-        stats_mean_placess = 2
-        stats_std_places = 2
+        loss_places = 6
+        stats_mean_placess = 8
+        stats_std_places = 7
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -931,6 +931,272 @@ class Testing(unittest.TestCase):
                          optimizer_no_torch, optimizer_torch,
                          loss_places, stats_mean_placess,
                          stats_std_places)
+
+    # @unittest.skip("")
+    def test_transpose_conv_grad(self):
+
+        n_samples, channels, h, w  = 200, 3, 41, 27
+        out_ch_conv1, out_ch_conv2 = 32, 64
+
+
+        kernel_size_1 = (3,2)
+        kernel_size_2 = (4,1)
+        kernel_size_t_1 = (1,5)
+        kernel_size_t_2 = (2,3)
+
+        stride_1 = (2,1)
+        stride_2 = (4,2)    
+        stride_t_1 = (2,1)
+        stride_t_2 = (1,4)
+
+        padding_1 = (0,3)
+        padding_2 = (2,1)
+        padding_t_1 = (1,4)
+        padding_t_2 = (0,2)
+
+        dilation_1 = (1,2)
+        dilation_2 = (4,2)
+        dilation_t_1 = (1,2)
+        dilation_t_2 = (3,5)
+
+        train_input = torch.randint(0,20,(n_samples, channels, h, w)).type(torch.FloatTensor)
+        train_targets = torch.randint(-15,15,(n_samples, channels, 6, 71)).type(torch.FloatTensor)
+        init_val = 0.05
+
+
+        no_torch_conv1 = Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size_1, 
+                                stride=stride_1,
+                                padding=padding_1,
+                                dilation=dilation_1,
+                                init_val=init_val)
+        no_torch_conv2 = Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size_2, 
+                                stride=stride_2,
+                                padding=padding_2,
+                                dilation=dilation_2,
+                                init_val=init_val)
+        no_torch_t_conv1 = TransposeConv2d(in_channels=out_ch_conv2, 
+                                           out_channels=out_ch_conv1, 
+                                           kernel_size=kernel_size_t_1, 
+                                           stride=stride_t_1,   
+                                           padding=padding_t_1,
+                                           dilation=dilation_t_1,
+                                           init_val=init_val)
+        no_torch_t_conv2 = TransposeConv2d(in_channels=out_ch_conv1, 
+                                           out_channels=channels, 
+                                           kernel_size=kernel_size_t_2, 
+                                           stride=stride_t_2,      
+                                           padding=padding_t_2,
+                                           dilation=dilation_t_2,
+                                           init_val=init_val) 
+        no_torch_relu_1 = ReLU()
+        no_torch_relu_2 = ReLU()
+
+        no_torch_sigmoid_1 = Sigmoid()
+        no_torch_sigmoid_2 = Sigmoid()
+
+        model_no_torch = Sequential(no_torch_conv1, 
+                                    no_torch_sigmoid_1, 
+                                    no_torch_conv2, 
+                                    no_torch_relu_1, 
+                                    no_torch_t_conv1, 
+                                    no_torch_relu_2, 
+                                    no_torch_t_conv2, 
+                                    no_torch_sigmoid_2)
+
+        torch_conv1 = nn.Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size_1, 
+                                stride=stride_1,
+                                padding=padding_1,
+                                dilation=dilation_1)
+        torch_conv2 = nn.Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size_2, 
+                                stride=stride_2,
+                                padding=padding_2,
+                                dilation=dilation_2)
+        torch_t_conv1 = torch.nn.ConvTranspose2d(in_channels=out_ch_conv2, 
+                                                 out_channels=out_ch_conv1, 
+                                                 kernel_size=kernel_size_t_1, 
+                                                 stride=stride_t_1,   
+                                                 padding=padding_t_1,
+                                                 dilation=dilation_t_1)
+        torch_t_conv2 = torch.nn.ConvTranspose2d(in_channels=out_ch_conv1, 
+                                                 out_channels=channels, 
+                                                 kernel_size=kernel_size_t_2, 
+                                                 stride=stride_t_2,      
+                                                 padding=padding_t_2,
+                                                 dilation=dilation_t_2)
+
+        torch_conv1.apply(init_weights_wrapper(init_val=init_val))
+        torch_conv2.apply(init_weights_wrapper(init_val=init_val))
+        torch_t_conv1.apply(init_weights_wrapper(init_val=init_val))
+        torch_t_conv2.apply(init_weights_wrapper(init_val=init_val))
+
+        model_torch = GradNet(torch_conv1, torch_conv2, 
+                              torch_t_conv1, torch_t_conv2)
+
+        lr, nb_epochs, batch_size = 1e-1, 10, 20
+        batches = math.ceil(n_samples / batch_size)
+
+        optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
+        criterion_no_torch = MSE()
+
+        optimizer_torch = torch.optim.SGD(model_torch.parameters(), lr=lr)
+        criterion_torch = nn.MSELoss()
+                
+        # Standardize data
+        mu, std = train_input.mean(), train_input.std()
+        train_input.sub_(mu).div_(std)
+
+        for e in range(nb_epochs):
+            for b, (input, targets) in enumerate(zip(train_input.split(batch_size),
+                                                   train_targets.split(batch_size))):
+
+                output_no_torch = model_no_torch.forward(input)
+                input.requires_grad = True
+                output_torch = model_torch(input)
+
+                loss_no_torch = criterion_no_torch.forward(output_no_torch, targets)
+                loss_torch = criterion_torch(output_torch, targets)   
+
+                optimizer_no_torch.zero_grad()
+                optimizer_torch.zero_grad() 
+
+                model_no_torch.backward(criterion_no_torch.backward())
+                loss_torch.backward()
+
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['sigmoid_2'],no_torch_sigmoid_2.grad), 
+                    msg=f'Equal sigmoid_2 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['t_conv2'],no_torch_t_conv2.grad), 
+                    msg=f'Equal transpose conv_2 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['relu_2'],no_torch_relu_2.grad), 
+                    msg=f'Equal relu_2 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['t_conv1'],no_torch_t_conv1.grad), 
+                    msg=f'Equal transpose conv_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['relu_1'],no_torch_relu_1.grad), 
+                    msg=f'Equal relu_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['conv2'],no_torch_conv2.grad), 
+                    msg=f'Equal conv_2 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['sigmoid_1'],no_torch_sigmoid_1.grad), 
+                    msg=f'Equal sigmoid_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['conv1'],no_torch_conv1.grad), 
+                    msg=f'Equal conv_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+
+                optimizer_no_torch.step()
+                optimizer_torch.step()
+
+    # @unittest.skip("")
+    def test_conv_grad(self):
+
+        n_samples, channels, h, w = 200, 3, 190, 35
+        out_ch_conv1, out_ch_conv2 = 3, 6
+
+        kernel_size_1 = (3,2)
+        kernel_size_2 = (4,1)
+
+        stride_1 = (2,1)
+        stride_2 = (4,2)
+
+        padding_1 = (0,3)
+        padding_2 = (2,1)
+
+        dilation_1 = (1,1)
+        dilation_2 = (1,2)
+
+        torch.manual_seed(2022)
+        train_input = torch.randint(0,20,(n_samples, channels, h, w)).type(torch.FloatTensor)
+        train_targets = torch.randint(-15,15,(n_samples, out_ch_conv2, 24, 21)).type(torch.FloatTensor)
+        init_val = 0.05
+
+        torch_conv1 = nn.Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size_1, 
+                                stride=stride_1,
+                                padding=padding_1,
+                                dilation=dilation_1)
+        torch_conv2 = nn.Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size_2, 
+                                stride=stride_2,
+                                padding=padding_2,
+                                dilation=dilation_2)
+        torch_conv1.apply(init_weights_wrapper(init_val=init_val))
+        torch_conv2.apply(init_weights_wrapper(init_val=init_val))
+
+        no_torch_conv1 = Conv2d(in_channels=channels, 
+                                out_channels=out_ch_conv1, 
+                                kernel_size=kernel_size_1, 
+                                stride=stride_1,
+                                padding=padding_1,
+                                dilation=dilation_1,
+                                init_val=init_val)
+        no_torch_conv2 = Conv2d(in_channels=out_ch_conv1, 
+                                out_channels=out_ch_conv2, 
+                                kernel_size=kernel_size_2, 
+                                stride=stride_2,
+                                padding=padding_2,
+                                dilation=dilation_2,
+                                init_val=init_val)
+        no_torch_relu_1 = ReLU()
+
+        model_no_torch = Sequential(no_torch_conv1, no_torch_relu_1, no_torch_conv2)
+        model_torch = GradNetConvOnly(torch_conv1, torch_conv2)
+
+        lr, nb_epochs, batch_size = 1e-1, 10, 5
+        batches = math.ceil(n_samples / batch_size) 
+
+        optimizer_no_torch = SGD(model_no_torch.param(), lr=lr)
+        criterion_no_torch = MSE()
+
+        optimizer_torch = torch.optim.SGD(model_torch.parameters(), lr=lr)
+        criterion_torch = nn.MSELoss()
+                
+        # Standardize data
+        mu, std = train_input.mean(), train_input.std()
+        train_input.sub_(mu).div_(std)
+
+        for e in range(nb_epochs):
+            for b, (input, targets) in enumerate(zip(train_input.split(batch_size),
+                                                   train_targets.split(batch_size))):
+                
+                output_no_torch = model_no_torch.forward(input)
+                input.requires_grad = True
+                output_torch = model_torch(input)
+
+                loss_no_torch = criterion_no_torch.forward(output_no_torch, targets)
+                loss_torch = criterion_torch(output_torch, targets)   
+
+                optimizer_no_torch.zero_grad()
+                optimizer_torch.zero_grad() 
+
+                model_no_torch.backward(criterion_no_torch.backward())
+                loss_torch.backward()
+
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['relu_1'],no_torch_relu_1.grad), 
+                    msg=f'Equal relu_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['conv2'],no_torch_conv2.grad), 
+                    msg=f'Equal conv_2 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(model_torch.grads['conv1'],no_torch_conv1.grad), 
+                    msg=f'Equal conv_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+
+                optimizer_no_torch.step()
+                optimizer_torch.step()
 
     
 if __name__ == '__main__':

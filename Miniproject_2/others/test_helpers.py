@@ -102,9 +102,14 @@ def train_and_assert(self_test, nb_epochs, batch_size,
                     pass
                 else:
                     raise a
+    # print(f'Final losses: no_torch: {loss_no_torch}, torch: {loss_torch}')
     
     return failed_once
             
+def save_grad(name, grads):
+    def hook(grad):
+        grads[name] = grad
+    return hook
 
 # --------------------- Classes -------------------- 
 
@@ -170,3 +175,56 @@ class ConvolutionLinearTorchTestBig(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         return x
+
+class GradNet(nn.Module):
+    """Torch module for testing gradients of 
+    convolution and transpose convolution"""
+    def __init__(self,conv1, conv2, t_conv1, t_conv2):
+        super().__init__()
+        self.grads = {}
+        self.conv1 = conv1
+        self.conv2 = conv2
+        self.t_conv1 = t_conv1
+        self.t_conv2 = t_conv2
+
+    def forward(self, x):
+        x.register_hook(save_grad('conv1', self.grads))
+        x_1 = self.conv1(x)
+        x_1.register_hook(save_grad('sigmoid_1', self.grads))
+        x_1_sigmoid = torch.sigmoid(x_1)
+        x_1_sigmoid.register_hook(save_grad('conv2', self.grads))
+        x_2 = self.conv2(x_1_sigmoid)
+        x_2.register_hook(save_grad('relu_1', self.grads))
+        x_2_relu = F.relu(x_2)
+        x_2_relu.register_hook(save_grad('t_conv1', self.grads))        
+        x_3 = self.t_conv1(x_2_relu)
+        x_3.register_hook(save_grad('relu_2', self.grads))
+        x_3_relu = F.relu(x_3)
+        x_3_relu.register_hook(save_grad('t_conv2', self.grads))
+        x_4 = self.t_conv2(x_3_relu)
+        x_4.register_hook(save_grad('sigmoid_2', self.grads))
+        x_4_sigmoid = torch.sigmoid(x_4)
+        return x_4_sigmoid
+
+class GradNetConvOnly(nn.Module):
+    """Torch module for testing gradients of 
+    convolution"""
+    def __init__(self,conv1, conv2):
+        super().__init__()
+        self.grads = {}
+        self.conv1 = conv1
+        self.conv2 = conv2
+
+    def forward(self, x):
+        
+        x.register_hook(save_grad('conv1', self.grads))
+        
+        x_1 = self.conv1(x)
+        x_1.register_hook(save_grad('relu_1', self.grads))
+        
+        x_1_relu = F.relu(x_1)
+        x_1_relu.register_hook(save_grad('conv2', self.grads))
+        
+        x_2 = self.conv2(x_1_relu)
+
+        return x_2
