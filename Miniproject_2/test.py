@@ -205,7 +205,7 @@ class Testing(unittest.TestCase):
 
         loss_places = 4
         stats_mean_places = 5 
-        stats_std_places = 7
+        stats_std_places = 6
 
         train_and_assert(self, nb_epochs, batch_size, 
                          train_input, train_targets,
@@ -272,7 +272,7 @@ class Testing(unittest.TestCase):
         mu, std = train_input.mean(), train_input.std()
         train_input.sub_(mu).div_(std)
 
-        loss_places = 4
+        loss_places = 3
         stats_mean_places = 4
         stats_std_places = 6    
 
