@@ -1,5 +1,4 @@
 import math
-from turtle import backward
 from torch import empty
 from torch.nn.functional import fold, unfold
 from others.others import make_tuple, \
@@ -11,7 +10,6 @@ from others.others import make_tuple, \
                           pad_tensor, \
                           unpad_tensor, \
                           unstride_tensor
-
 import torch
 torch.set_grad_enabled(False)
 
@@ -19,7 +17,7 @@ torch.set_grad_enabled(False)
 
 class Module(object):
     """
-    Module class defining model architecture
+    Base Module class
 
     Methods
     -------
@@ -30,7 +28,7 @@ class Module(object):
     param()
         Returns the list of trainable parameters
     """
-    
+
     def __init__(self):
         """Constructor"""
         pass
@@ -48,7 +46,7 @@ class Module(object):
         torch.tensor
             The result of applying the module
         """
-        raise NotImplementedError
+        pass
         
     def backward(self, *gradwrtoutput):
         """Runs the backward pass
@@ -63,7 +61,7 @@ class Module(object):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        raise NotImplementedError 
+        pass 
         
     def param(self):
         """Returns the trainable parameters of the model
@@ -79,7 +77,7 @@ class Module(object):
 
 class Sequential(Module):
     """
-    Sequential model architecture class
+    Sequential module class
 
     Attributes
     ----------
@@ -117,6 +115,8 @@ class Sequential(Module):
     
     def forward(self, *input):
         """Sequential forward pass
+        Calls forward(input) on all the modules 
+        in sequential order
 
         Parameters
         ----------
@@ -136,23 +136,21 @@ class Sequential(Module):
         
     def backward(self, *gradwrtoutput):
         """Sequential backward pass
+        Calls backward(grad) on all the modules 
+        in reverse sequential order
 
         Parameters
         ----------
         gradwrtoutput : torch.tensor
             The gradients wrt the module's output
-
-        Returns
-        -------
-        torch.tensor
-            The gradient of the loss wrt the module's input
         """
         backward_data = gradwrtoutput[0].clone()
         for module in reversed(self.modules):
             backward_data = module.backward(backward_data) 
         
     def param(self):
-        """Returns the trainable parameters of the sequential model
+        """Returns the trainable parameters of 
+        the sequential module
 
         Returns
         -------
@@ -165,14 +163,14 @@ class Sequential(Module):
 
 class Linear(Module):
     """
-    Linear layer class
+    Linear module class
 
     Attributes
     ----------
     Weight : torch.tensor 
-        the weight tensor of the linear layer
+        the weight tensor of the linear module
     bias : torch.tensor
-        the bias tensor of the linear layer
+        the bias tensor of the linear module
     grad_Weight: torch.tensor
         the gradient of the loss wrt the weight matrix 
     grad_bias: torch.tensor
@@ -187,11 +185,12 @@ class Linear(Module):
     param()
         Returns the list of trainable parameters
     reset_params(input_size, init_val)
-        Resets the trainable parameters of the linear layer
+        Resets the trainable parameters of 
+        the linear module
     """
-    
+
     def __init__(self, input_size, output_size, init_val=None):
-        """Convolution constructor
+        """Linear module constructor
         
         Parameters
         ----------
@@ -210,7 +209,7 @@ class Linear(Module):
         self.reset_params(input_size, init_val)
     
     def forward(self, *input):
-        """Linear layer forward pass
+        """Linear module forward pass
 
         Parameters
         ----------
@@ -220,13 +219,13 @@ class Linear(Module):
         Returns
         -------
         torch.tensor
-            The result of applying convolution
+            The result of applying the linear module
         """
         self.input = input[0].clone().flatten(start_dim=1) # Need to flatten (e.g. if input comes from conv layer)
         return self.input.mm(self.Weight).add(self.bias)
         
     def backward(self, *gradwrtoutput):
-        """Linear layer backward pass
+        """Linear module backward pass
 
         Parameters
         ----------
@@ -244,7 +243,7 @@ class Linear(Module):
         return grad.mm(self.Weight.t()) 
         
     def param(self):
-        """Returns the trainable parameters of the linear layer
+        """Returns the trainable parameters of the linear module
 
         Returns
         -------
@@ -254,7 +253,7 @@ class Linear(Module):
         return [(self.Weight, self.grad_Weight), (self.bias, self.grad_bias)]
 
     def reset_params(self, input_size, init_val=None):
-        """Resets the trainable parameters of the linear layer
+        """Resets the trainable parameters of the linear module
         
         Parameters
         ----------
@@ -275,7 +274,7 @@ class Linear(Module):
 
 class Conv2d(Module):
     """
-    Convolutional layer class
+    Convolution module class
 
     Attributes
     ----------
@@ -292,9 +291,9 @@ class Conv2d(Module):
     dilation : tuple
         controls the stride of elements within the neighborhood
     Weight : torch.tensor 
-        the weight tensor of the convolutional layer
+        the weight tensor of the convolution module
     bias : torch.tensor
-        the bias tensor of the convolutional layer
+        the bias tensor of the convolution module
     grad_Weight: torch.tensor
         the gradient of the loss wrt the weight matrix 
     grad_bias: torch.tensor
@@ -304,7 +303,7 @@ class Conv2d(Module):
     out_shape : torch.size
         the shape of the output of the module
     input = torch.tensor
-        the input of the module
+        the input to the module
 
     Methods
     -------
@@ -314,13 +313,15 @@ class Conv2d(Module):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
-    reset_params()
+    reset_params(transpose, init_val)
         Resets the trainable parameters of the 
-        convolutional layer
-    """    
+        convolution module
+    """   
+
     def __init__(self, in_channels, out_channels, kernel_size, 
-                 stride=1, padding=0, dilation=1, init_val=None):
-        """Convolution constructor
+                 stride=1, padding=0, dilation=1, transpose=False,
+                 init_val=None):
+        """Convolution module constructor
         
         Parameters
         ----------
@@ -338,6 +339,9 @@ class Conv2d(Module):
         dilation : int or tuple, optional
             Controls the stride of elements within the 
             neighborhood (default is 1)
+        transpose: boolean, optional
+            Determines if the convolution is transpose 
+            or not (default is False)
         init_val: float, optional
             Default value of all weights (default is None)
         """
@@ -361,14 +365,14 @@ class Conv2d(Module):
                                  self.kernel_size[0], 
                                  self.kernel_size[1])
         self.grad_bias = empty(out_channels)
-        self.reset_params(init_val)
+        self.reset_params(transpose, init_val)
 
         self.in_shape = None
         self.out_shape = None
         self.input = None
     
     def forward(self, *input):
-        """Convolutional layer forward pass
+        """Convolution module forward pass
 
         Parameters
         ----------
@@ -378,7 +382,7 @@ class Conv2d(Module):
         Returns
         -------
         torch.tensor
-            The result of applying convolution
+            The result of applying the convolution
         """
         self.in_shape = input[0].shape
         batch_size, _ , h_in, w_in = self.in_shape
@@ -436,7 +440,7 @@ class Conv2d(Module):
         return convolved
         
     def backward(self, *gradwrtoutput):
-        """Convolutional layer backward pass
+        """Convolutional module backward pass
 
         Parameters
         ----------
@@ -489,22 +493,20 @@ class Conv2d(Module):
         #   [Out_channels, In_channels, H_Ker, W_Ker] 
         #       --> 
         #   [Out_channels, In_channels * H_Ker * W_Ker]
-        Weight_reshaped = self.Weight.view(self.out_channels, -1)
-
-        # mm : 
-        #   [In_channels * H_Ker * W_Ker, Out_channels] 
-        #       X 
-        #   [Out_channels, Batch_size * H_out * W_out]
-        #       -->
-        #   [In_channels * H_Ker * W_Ker, Batch_size * H_out * W_out]
-        grad_wrt_input = Weight_reshaped.t().mm(grad_reshaped)
-
-        # view : 
-        #   [In_channels * H_Ker * W_Ker, Batch_size * H_out * W_out] 
+        # transpose:
+        #   [Out_channels, In_channels * H_Ker * W_Ker] 
         #       --> 
-        #   [Batch_size, In_channels * H_Ker * W_Ker, H_out * W_out]
-        grad_wrt_input = grad_wrt_input \
-                         .view(self.in_shape[0], grad_wrt_input.shape[0],-1)
+        #   [In_channels * H_Ker * W_Ker, Out_channels]
+        Weight_reshaped = self.Weight.view(self.out_channels, -1).t()
+
+        # matmul : 
+        #   [In_channels * H_Ker * W_Ker, Out_channels]
+        #       X 
+        #   [Batch_size, Out_channels, H_out * W_out] 
+        #       --> 
+        #   [Batch_size, In_channels * H_Ker * W_Ker, H_out * W_out] 
+        grad_wrt_input = Weight_reshaped \
+                         .matmul(grad.flatten(start_dim=2))
 
         # fold : 
         #   [Batch_size, In_channels * H_Ker * W_Ker, H_out * W_out] 
@@ -516,10 +518,15 @@ class Conv2d(Module):
                               dilation=self.dilation,
                               padding=self.padding,
                               stride=self.stride)
+
+        # For test purposes only
+        self.grad = grad_wrt_input
+
         return grad_wrt_input
         
     def param(self):
-        """Returns the trainable parameters of the convolutional layer
+        """Returns the trainable parameters of the 
+        convolutional module
 
         Returns
         -------
@@ -528,23 +535,26 @@ class Conv2d(Module):
         """
         return [(self.Weight, self.grad_Weight), (self.bias, self.grad_bias)]
 
-    def reset_params(self, init_val=None):
+    def reset_params(self, transpose=False, init_val=None):
         """Resets the trainable parameters of the convolutional layer
-        according to: https://discuss.pytorch.org/t/what-is-the-default-initialization-of-a-conv2d-layer-and-linear-layer/16055/2
+        according to the documentation of nn.Con2d and nn.ConvTranspose2d
         
         Parameters
         ----------
-        init_val: 
+        transpose: boolean, optional
+            Determines if the convolution is transpose 
+            or not (default is False)
+        init_val: float, optional
             Default value of all weights (default is None)
         """
         if init_val is not None:
             self.Weight.fill_(init_val)
             self.bias.fill_(init_val)
         else:
-            in_c = self.in_channels
+            k = self.in_channels if not transpose else self.out_channels
             for k_size in self.kernel_size:
-                in_c *= k_size
-            stdv = 1. / math.sqrt(in_c)
+                k *= k_size
+            stdv = 1. / math.sqrt(k)
             self.Weight.uniform_(-stdv, stdv)
             self.bias.uniform_(-stdv, stdv) 
         self.grad_Weight.zero_()
@@ -646,7 +656,7 @@ class NearestUpsampling(Module):
 
 class TransposeConv2d(Module): 
     """
-    Transpose convolution layer class implemented using
+    Transpose convolution module class implemented using
     border zero padding and convolution.
 
     Attributes
@@ -661,8 +671,8 @@ class TransposeConv2d(Module):
         controls the stride of elements within the neighborhood
     conv : Module
         the convolution module
-    input_shape : torch.size
-        the shape of the input to the module
+    strided_shape : torch.size
+        the shape of the input after it has been strided
 
     Methods
     -------
@@ -706,11 +716,12 @@ class TransposeConv2d(Module):
                            out_channels=out_channels,
                            kernel_size=self.kernel_size,
                            dilation=self.dilation,
+                           transpose=True,
                            init_val=init_val)
-        self.input_shape = None
+        self.strided_shape = None
 
     def forward(self, *input):
-        """Transpose convolution layer forward pass
+        """Transpose convolution module forward pass
 
         Parameters
         ----------
@@ -722,17 +733,15 @@ class TransposeConv2d(Module):
         torch.tensor
             The result of applying transpose convolution
         """
-        in_ = input[0].clone()
-        self.input_shape = in_.shape
-        strided = stride_tensor(in_, self.stride)
+        strided = stride_tensor(input[0].clone(), self.stride)
+        self.strided_shape = strided.shape
         pad_k_h = self.kernel_size[0] + (self.kernel_size[0]-1)*(self.dilation[0]-1)
         pad_k_w = self.kernel_size[1] + (self.kernel_size[1]-1)*(self.dilation[1]-1)
         padded = pad_tensor(strided, (pad_k_h, pad_k_w), self.padding)
-        self.formatted = padded
         return self.conv.forward(padded)
 
     def backward(self, *gradwrtoutput):
-        """Transpose layer backward pass
+        """Transpose convolution module backward pass
 
         Parameters
         ----------
@@ -746,20 +755,24 @@ class TransposeConv2d(Module):
         """
         grad = gradwrtoutput[0].clone()
         grad_from_conv = self.conv.backward(grad)
-        unstrided_grad = unstride_tensor(grad_from_conv, 
+        unpadded_grad = unpad_tensor(grad_from_conv,
+                                     self.strided_shape)
+        unstrided_grad = unstride_tensor(unpadded_grad, 
                                          self.stride)
-        unpadded_grad = unpad_tensor(unstrided_grad,
-                                     self.input_shape)
-        return unpadded_grad
+
+        # For test purposes only
+        self.grad = unstrided_grad
+
+        return unstrided_grad
         
     def param(self):
         """Returns the trainable parameters of the transpose
-        comvolution layer
+        comvolution module
 
         Returns
         -------
         list
-            The list of trainable parameters
+            The list of trainable parameters and their gradients
         """
         return self.conv.param()
 
@@ -767,12 +780,12 @@ class TransposeConv2d(Module):
 
 class ReLU(Module):
     """
-    ReLU activation function class
+    ReLU activation function module
 
     Attributes
     ----------
     input : torch.tensor 
-        the input of the ReLU module
+        the input to the ReLU module
 
     Methods
     -------
@@ -783,12 +796,12 @@ class ReLU(Module):
     """
     
     def __init__(self):
-        """ReLU constructor """
+        """ReLU module constructor """
         super().__init__()
         self.input = None
     
     def forward(self, *input):
-        """ReLU forward pass
+        """ReLU module forward pass
 
         Parameters
         ----------
@@ -805,7 +818,7 @@ class ReLU(Module):
         # return input[0].relu() # (using relu(), is this allowed?)
         
     def backward(self, *gradwrtoutput):
-        """ReLU backward pass
+        """ReLU module backward pass
 
         Parameters
         ----------
@@ -820,11 +833,16 @@ class ReLU(Module):
         backward = self.input.sign().clamp(0)
         grad = gradwrtoutput[0].clone().view(self.input.shape) # make sure grad is same shape as input
         # backward = self.input.relu().sign() # (using relu(), is this allowed?)
-        return backward.mul(grad)
+        ret = backward.mul(grad)
+
+        # For test purposes only
+        self.grad = ret
+
+        return ret
 
 class Sigmoid(Module):
     """
-    Sigmoid activation function class
+    Sigmoid activation function module
 
     Attributes
     ----------
@@ -840,12 +858,12 @@ class Sigmoid(Module):
     """
     
     def __init__(self):
-        """Sigmoid constructor"""
+        """Sigmoid module constructor"""
         super().__init__()
         self.input = None
     
     def forward(self, *input):
-        """Sigmoid forward pass
+        """Sigmoid module forward pass
 
         Parameters
         ----------
@@ -861,7 +879,7 @@ class Sigmoid(Module):
         return input[0].sigmoid() # Using sidmoid() here, is this allowed or do we need to implement from scratch?
         
     def backward(self, *gradwrtoutput):
-        """Sigmoid backward pass
+        """Sigmoid module backward pass
 
         Parameters
         ----------
@@ -875,13 +893,18 @@ class Sigmoid(Module):
         """
         backward = self.input.sigmoid() * (1 - self.input.sigmoid()) # Using sidmoid() here, is this allowed or do we need to implement from scratch?
         grad = gradwrtoutput[0].clone().view(self.input.shape) # make sure grad is same shape as input
-        return backward.mul(grad)
+        ret = backward.mul(grad)
+
+        # For test purposes only
+        self.grad = ret
+
+        return ret
 
 # ----------------------- Loss --------------------- 
 
 class MSE(Module):
     """
-    MSE loss class
+    MSE loss module
 
     Attributes
     ----------
@@ -897,12 +920,12 @@ class MSE(Module):
     """
     
     def __init__(self):
-        """MSE loss constructor"""
+        """MSE loss module constructor"""
         super().__init__()
         self.error = None
     
     def forward (self, prediction, target):
-        """MSE loss forward pass
+        """MSE loss module forward pass
 
         Parameters
         ----------
@@ -914,13 +937,13 @@ class MSE(Module):
         Returns
         -------
         torch.tensor
-            The result of applying the MSE
+            The result of applying the MSE loss
         """      
         self.error = prediction - target
         return self.error.pow(2).mean()
         
     def backward(self):
-        """MSE loss backward pass
+        """MSE loss module backward pass
 
         Returns
         -------
