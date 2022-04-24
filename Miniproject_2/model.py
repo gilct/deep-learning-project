@@ -1029,28 +1029,31 @@ class Model():
 
     def __init__(self) -> None:
         """Model constructor"""
-        in_channels = 3
-        hidden_dim_1, hidden_dim_2, out_dim = 3, 2, 1
-        out_channels_1, out_channels_2 = 5, 3
-        kernel_size_1, kernel_size_2 = (2, 4), (2, 4)
-        stride_1, stride_2 = 3, 15
-        lr, self.nb_epochs, self.batch_size = 1e-1, 9, 47
-        self.model = Sequential(Conv2d(in_channels = in_channels, 
-                                       out_channels = out_channels_1, 
-                                       kernel_size = kernel_size_1, 
-                                       stride = stride_1),
+        channels = 3
+        out_ch_conv1, out_ch_conv2 = 32, 64
+        kernel_size = (2,2)
+        stride = 2
+        lr, self.batch_size = 1e-5, 10
+        self.model = Sequential(Conv2d(in_channels=channels, 
+                                       out_channels=out_ch_conv1, 
+                                       kernel_size=kernel_size, 
+                                       stride=stride),
                                 ReLU(),
-                                Conv2d(in_channels = out_channels_1, 
-                                       out_channels = out_channels_2, 
-                                       kernel_size = kernel_size_2, 
-                                       stride = stride_2),
+                                Conv2d(in_channels=out_ch_conv1, 
+                                       out_channels=out_ch_conv2, 
+                                       kernel_size=kernel_size, 
+                                       stride=stride),
                                 ReLU(),
-                                Linear(hidden_dim_1,
-                                       hidden_dim_2),
+                                TransposeConv2d(in_channels=out_ch_conv2,
+                                                out_channels=out_ch_conv1,
+                                                kernel_size=kernel_size,
+                                                stride=stride),
                                 ReLU(),
-                                Linear(hidden_dim_2,
-                                       out_dim),
-                                ReLU())
+                                TransposeConv2d(in_channels=out_ch_conv1,
+                                                out_channels=channels,
+                                                kernel_size=kernel_size,
+                                                stride=stride),
+                                Sigmoid())
         self.optimizer = SGD(self.model.param(), lr=lr)
         self.criterion = MSE()
 
@@ -1058,7 +1061,7 @@ class Model():
         """Loads the parameters saved in bestmodel.pth into the model"""
         pass
 
-    def train(self, train_input, train_target) -> None:
+    def train(self, train_input, train_target, num_epochs) -> None:
         """Runs the training procedure
 
         Parameters
@@ -1069,7 +1072,9 @@ class Model():
             Tensor containing another noisy version of the same 
             images, which only differs from the input by their noise.
         """
-        for _ in range(self.nb_epochs):
+        for e in range(num_epochs):
+            item = f'\rTraining epoch {e+1}/{num_epochs}...'
+            print(item, sep=' ', end='', flush=True)
             for input, targets in zip(train_input.split(self.batch_size),
                                       train_target.split(self.batch_size)):
                 output = self.model.forward(input)
@@ -1077,6 +1082,7 @@ class Model():
                 self.optimizer.zero_grad()
                 self.model.backward(self.criterion.backward())
                 self.optimizer.step()
+        print()
 
     def predict(self, test_input) -> torch.Tensor:
         """Generates a prediction (denoising) on the input
@@ -1098,24 +1104,37 @@ def example_run():
     SEED = 2022
     torch.manual_seed(SEED)
 
-    moddy = Model()
+    model = Model()
+    num_epochs = 10
 
-    # Define dimensions of data
-    in_channels, height, width = 3, 32, 32
-    n_samples = 237
-    out_dim = 1
-
+    # Use synthetic up data
     # Parameters of distribution of inputs and targets
-    mean, std = 0, 20
-    unif_lower, unif_upper = 10, 15
-    train_input = empty(n_samples, in_channels, height, width).normal_(mean, std)
-    train_targets = empty(n_samples, out_dim).uniform_(unif_lower,unif_upper)
+    # in_channels, height, width = 3, 32, 32
+    # n_samples = 200
+    # mean, std = 0, 1
+    # train_input = torch.randint(0,50,(n_samples, in_channels, height, width)).type(torch.FloatTensor)
+    # train_targets = train_input + empty(n_samples, in_channels, height, width).normal_(mean, std)
+    # some_sample = torch.randint(0,50,(1, in_channels, height, width)).type(torch.FloatTensor)
+
+    # Use project data
+    noisy_imgs_1, noisy_imgs_2 = torch.load("../data/train_data.pkl")
+    noisy_imgs , clean_imgs = torch.load("../data/val_data.pkl")
+    noisy_imgs_1, noisy_imgs_2 = torch.Tensor.float(noisy_imgs_1), torch.Tensor.float(noisy_imgs_2)
+    noisy_imgs, clean_imgs = torch.Tensor.float(noisy_imgs), torch.Tensor.float(clean_imgs)
+    train_input = noisy_imgs_1[:200]
+    train_targets = noisy_imgs_2[:200]
+    some_sample = noisy_imgs[0][None, :]
 
     # Normalize data
     mu, std = train_input.mean(), train_input.std()
     train_input.sub_(mu).div_(std)
 
     # Train and predict
-    moddy.train(train_input, train_targets)
-    pred = moddy.predict(train_input[9][None, :])
-    print(pred)
+    model.train(train_input, train_targets, num_epochs)
+
+    # Evaluate
+    some_sample.sub_(mu).div_(std)
+    pred = model.predict(some_sample)
+    # print(pred)
+
+example_run()
