@@ -167,11 +167,11 @@ class Linear(Module):
 
     Attributes
     ----------
-    Weight : torch.tensor 
+    weight : torch.tensor 
         the weight tensor of the linear module
     bias : torch.tensor
         the bias tensor of the linear module
-    grad_Weight: torch.tensor
+    grad_weight: torch.tensor
         the gradient of the loss wrt the weight matrix 
     grad_bias: torch.tensor
         the gradient of the loss wrt the bias 
@@ -202,9 +202,9 @@ class Linear(Module):
             Default value of all weights (default is None)
         """
         super().__init__()
-        self.Weight = empty(input_size, output_size)
+        self.weight = empty(input_size, output_size)
         self.bias = empty(output_size)
-        self.grad_Weight = empty(input_size, output_size)
+        self.grad_weight = empty(input_size, output_size)
         self.grad_bias = empty(output_size)
         self.reset_params(input_size, init_val)
     
@@ -222,7 +222,7 @@ class Linear(Module):
             The result of applying the linear module
         """
         self.input = input[0].clone().flatten(start_dim=1) # Need to flatten (e.g. if input comes from conv layer)
-        return self.input.mm(self.Weight).add(self.bias)
+        return self.input.mm(self.weight).add(self.bias)
         
     def backward(self, *gradwrtoutput):
         """Linear module backward pass
@@ -238,9 +238,9 @@ class Linear(Module):
             The gradient of the loss wrt the input
         """
         grad = gradwrtoutput[0].clone()
-        self.grad_Weight.add_(self.input.t().mm(grad))
+        self.grad_weight.add_(self.input.t().mm(grad))
         self.grad_bias.add_(grad.sum(0))
-        return grad.mm(self.Weight.t()) 
+        return grad.mm(self.weight.t()) 
         
     def param(self):
         """Returns the trainable parameters of the linear module
@@ -250,7 +250,7 @@ class Linear(Module):
         list
             The list of trainable parameters and their gradients
         """
-        return [(self.Weight, self.grad_Weight), (self.bias, self.grad_bias)]
+        return [(self.weight, self.grad_weight), (self.bias, self.grad_bias)]
 
     def reset_params(self, input_size, init_val=None):
         """Resets the trainable parameters of the linear module
@@ -263,13 +263,13 @@ class Linear(Module):
             Default value of all weights (default is None)
         """
         if init_val is not None:
-            self.Weight.fill_(init_val)
+            self.weight.fill_(init_val)
             self.bias.fill_(init_val)
         else:
             stdv = 1. / math.sqrt(input_size)
-            self.Weight = self.Weight.uniform_(-stdv, stdv)
+            self.weight = self.weight.uniform_(-stdv, stdv)
             self.bias = self.bias.uniform_(-stdv, stdv) 
-        self.grad_Weight.zero_()
+        self.grad_weight.zero_()
         self.grad_bias.zero_()
 
 class Conv2d(Module):
@@ -290,11 +290,11 @@ class Conv2d(Module):
         zero padding to be added on both sides of input
     dilation : tuple
         controls the stride of elements within the neighborhood
-    Weight : torch.tensor 
+    weight : torch.tensor 
         the weight tensor of the convolution module
     bias : torch.tensor
         the bias tensor of the convolution module
-    grad_Weight: torch.tensor
+    grad_weight: torch.tensor
         the gradient of the loss wrt the weight matrix 
     grad_bias: torch.tensor
         the gradient of the loss wrt the bias 
@@ -355,12 +355,12 @@ class Conv2d(Module):
         self.padding = make_tuple(padding)
         self.dilation = make_tuple(dilation)
 
-        self.Weight = empty(out_channels, 
+        self.weight = empty(out_channels, 
                             in_channels, 
                             self.kernel_size[0], 
                             self.kernel_size[1])
         self.bias = empty(out_channels)
-        self.grad_Weight = empty(out_channels, 
+        self.grad_weight = empty(out_channels, 
                                  in_channels, 
                                  self.kernel_size[0], 
                                  self.kernel_size[1])
@@ -417,7 +417,7 @@ class Conv2d(Module):
         #   [Batch_size, In_channels * H_Ker * W_Ker, H_out * W_out]
         #       --> 
         #   [Batch_size, Out_channels, H_out * W_out]
-        convolved = self.Weight.view(self.out_channels, -1) \
+        convolved = self.weight.view(self.out_channels, -1) \
                     .matmul(unfolded) \
                     .add(self.bias.view(1, -1, 1))
 
@@ -479,13 +479,13 @@ class Conv2d(Module):
         #   [Batch_size * H_out * W_out, In_channels * H_Ker * W_Ker]
         #       -->
         #   [Out_channels, In_channels * H_Ker * W_Ker]
-        grad_Weight = grad_reshaped.mm(self.input)
+        grad_weight = grad_reshaped.mm(self.input)
 
         # reshape : 
         #   [Out_channels, In_channels * H_Ker * W_Ker] 
         #       --> 
         #   [Out_channels, In_channels, H_Ker, W_Ker]
-        self.grad_Weight.add_(grad_Weight.reshape(self.grad_Weight.shape))
+        self.grad_weight.add_(grad_weight.reshape(self.grad_weight.shape))
 
         # ---------------- Gradient wrt input -----------------
 
@@ -497,7 +497,7 @@ class Conv2d(Module):
         #   [Out_channels, In_channels * H_Ker * W_Ker] 
         #       --> 
         #   [In_channels * H_Ker * W_Ker, Out_channels]
-        Weight_reshaped = self.Weight.view(self.out_channels, -1).t()
+        weight_reshaped = self.weight.view(self.out_channels, -1).t()
 
         # matmul : 
         #   [In_channels * H_Ker * W_Ker, Out_channels]
@@ -505,7 +505,7 @@ class Conv2d(Module):
         #   [Batch_size, Out_channels, H_out * W_out] 
         #       --> 
         #   [Batch_size, In_channels * H_Ker * W_Ker, H_out * W_out] 
-        grad_wrt_input = Weight_reshaped \
+        grad_wrt_input = weight_reshaped \
                          .matmul(grad.flatten(start_dim=2))
 
         # fold : 
@@ -533,7 +533,7 @@ class Conv2d(Module):
         list
             The list of trainable parameters and their gradients
         """
-        return [(self.Weight, self.grad_Weight), (self.bias, self.grad_bias)]
+        return [(self.weight, self.grad_weight), (self.bias, self.grad_bias)]
 
     def reset_params(self, transpose=False, init_val=None):
         """Resets the trainable parameters of the convolutional layer
@@ -548,16 +548,16 @@ class Conv2d(Module):
             Default value of all weights (default is None)
         """
         if init_val is not None:
-            self.Weight.fill_(init_val)
+            self.weight.fill_(init_val)
             self.bias.fill_(init_val)
         else:
             k = self.in_channels if not transpose else self.out_channels
             for k_size in self.kernel_size:
                 k *= k_size
             stdv = 1. / math.sqrt(k)
-            self.Weight.uniform_(-stdv, stdv)
+            self.weight.uniform_(-stdv, stdv)
             self.bias.uniform_(-stdv, stdv) 
-        self.grad_Weight.zero_()
+        self.grad_weight.zero_()
         self.grad_bias.zero_() 
 
 # This module can be thrown away
