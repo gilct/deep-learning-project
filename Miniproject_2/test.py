@@ -1094,6 +1094,56 @@ class Testing(unittest.TestCase):
                 self.assertTrue(
                     torch.allclose(model_torch.grads['conv1'],no_torch_conv1.grad), 
                     msg=f'Equal conv_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                    
+                self.assertTrue(
+                    torch.allclose(torch_conv1.bias.grad,no_torch_conv1.grad_bias),
+                    msg=f'Equal conv_1 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.bias.grad,no_torch_conv2.grad_bias, atol=1e-6),
+                    msg=f'Equal conv_2 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.weight.grad,no_torch_conv1.grad_weight),
+                    msg=f'Equal conv_1 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.weight.grad,no_torch_conv2.grad_weight),
+                    msg=f'Equal conv_2 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.bias,no_torch_conv1.bias),
+                    msg=f'Equal conv_1 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.bias,no_torch_conv2.bias),
+                    msg=f'Equal conv_2 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.weight,no_torch_conv1.weight),
+                    msg=f'Equal conv_1 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.weight,no_torch_conv2.weight),
+                    msg=f'Equal conv_2 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+
+                self.assertTrue(
+                    torch.allclose(torch_t_conv1.bias.grad,no_torch_t_conv1.conv.grad_bias),
+                    msg=f'Equal transpose conv_1 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv2.bias.grad,no_torch_t_conv2.conv.grad_bias),
+                    msg=f'Equal transpose conv_2 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv1.weight.grad,no_torch_t_conv1.conv.grad_weight.transpose(0,1).flip(2,3)),
+                    msg=f'Equal transpose conv_1 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv2.weight.grad,no_torch_t_conv2.conv.grad_weight.transpose(0,1).flip(2,3)),
+                    msg=f'Equal transpose conv_2 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv1.bias,no_torch_t_conv1.conv.bias),
+                    msg=f'Equal transpose conv_1 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv2.bias,no_torch_t_conv2.conv.bias),
+                    msg=f'Equal transpose conv_2 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_t_conv1.weight,no_torch_t_conv1.conv.weight.transpose(0,1).flip(2,3)),
+                    msg=f'Equal transpose conv_1 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')                 
+                self.assertTrue(
+                    torch.allclose(torch_t_conv2.weight,no_torch_t_conv2.conv.weight.transpose(0,1).flip(2,3)),
+                    msg=f'Equal transpose conv_2 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
 
                 optimizer_no_torch.step()
                 optimizer_torch.step()
@@ -1194,6 +1244,30 @@ class Testing(unittest.TestCase):
                 self.assertTrue(
                     torch.allclose(model_torch.grads['conv1'],no_torch_conv1.grad), 
                     msg=f'Equal conv_1 grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.bias.grad,no_torch_conv1.grad_bias),
+                    msg=f'Equal conv_1 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.bias.grad,no_torch_conv2.grad_bias, atol=1e-6),
+                    msg=f'Equal conv_2 bias grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.weight.grad,no_torch_conv1.grad_weight),
+                    msg=f'Equal conv_1 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.weight.grad,no_torch_conv2.grad_weight),
+                    msg=f'Equal conv_2 weight grad @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.bias,no_torch_conv1.bias),
+                    msg=f'Equal conv_1 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.bias,no_torch_conv2.bias),
+                    msg=f'Equal conv_2 bias @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv1.weight,no_torch_conv1.weight),
+                    msg=f'Equal conv_1 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
+                self.assertTrue(
+                    torch.allclose(torch_conv2.weight,no_torch_conv2.weight),
+                    msg=f'Equal conv_2 weight @: epoch {e}/{nb_epochs} - batch {b}/{batches}')
 
                 optimizer_no_torch.step()
                 optimizer_torch.step()
