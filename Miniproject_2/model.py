@@ -717,8 +717,7 @@ class ReLU(Module):
             The result of applying the ReLU function
         """
         self.input = input[0].clone()
-        return self.input.clamp(0)
-        # return input[0].relu() # (using relu(), is this allowed?)
+        return input[0].relu()
         
     def backward(self, *gradwrtoutput):
         """ReLU module backward pass
@@ -733,9 +732,8 @@ class ReLU(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        backward = self.input.sign().clamp(0)
         grad = gradwrtoutput[0].clone().view(self.input.shape) # make sure grad is same shape as input
-        # backward = self.input.relu().sign() # (using relu(), is this allowed?)
+        backward = self.input.relu().sign()
         ret = backward.mul(grad)
 
         # For test purposes only
@@ -779,7 +777,7 @@ class Sigmoid(Module):
             The result of applying the sigmoid function
         """
         self.input = input[0].clone()
-        return input[0].sigmoid() # Using sidmoid() here, is this allowed or do we need to implement from scratch?
+        return input[0].sigmoid()
         
     def backward(self, *gradwrtoutput):
         """Sigmoid module backward pass
@@ -794,7 +792,7 @@ class Sigmoid(Module):
         torch.tensor
             The gradient of the loss wrt the module's input
         """
-        backward = self.input.sigmoid() * (1 - self.input.sigmoid()) # Using sidmoid() here, is this allowed or do we need to implement from scratch?
+        backward = self.input.sigmoid() * (1 - self.input.sigmoid())
         grad = gradwrtoutput[0].clone().view(self.input.shape) # make sure grad is same shape as input
         ret = backward.mul(grad)
 
