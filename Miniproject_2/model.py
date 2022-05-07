@@ -3,9 +3,6 @@ from torch import empty
 from torch.nn.functional import fold, unfold
 from others.others import make_tuple, \
                           compute_conv_output_shape, \
-                          compute_upsampling_dim, \
-                          compute_scaling_factor, \
-                          nn_upsampling, \
                           stride_tensor, \
                           pad_tensor, \
                           unpad_tensor, \
@@ -559,100 +556,6 @@ class Conv2d(Module):
             self.bias.uniform_(-stdv, stdv) 
         self.grad_weight.zero_()
         self.grad_bias.zero_() 
-
-# This module can be thrown away
-# backprop not implemented
-class NearestUpsampling(Module):
-    """
-    Upsampling layer class implemented using
-    nearest neighbor upsampling and convolution.
-
-    Attributes
-    ----------
-    input_dim : int
-        dimensions (h,w) of the input image
-    out_dim : int
-        dimensions (h,w) of the upsampled image
-    in_channels : int
-        number of channels in the input image
-    out_channels : int
-        number of channels produced by the upsampling
-
-    Methods
-    -------
-    forward(input)
-        Runs the forward pass
-    backward(gradwrtoutput)
-        Runs the backward pass
-    param()
-        Returns the list of trainable parameters
-    """    
-    def __init__(self, input_dim, out_dim, in_channels, 
-                 out_channels, init_val=None):
-        """Upsampler constructor
-        
-        Parameters
-        ----------
-        input_dim : int
-            Dimensions (h,w) of the input image
-        out_dim : int
-            Dimensions (h,w) of the upsampled image
-        in_channels : int
-            Number of channels in the input image
-        out_channels : int
-            Number of channels produced by the upsampling
-        init_val: float, optional
-            Default value of all weights (default is None)
-        """
-        self.scale_factor = compute_scaling_factor(out_dim, 
-                                                   input_dim)
-        ker_h, ker_w = compute_upsampling_dim(out_dim, 
-                                              input_dim, 
-                                              self.scale_factor)
-        self.conv = Conv2d(in_channels,
-                           out_channels,
-                           (ker_h, ker_w),
-                           init_val=init_val)
-
-    def forward(self, *input):
-        """Upsampling layer forward pass
-
-        Parameters
-        ----------
-        input : torch.tensor
-            The input
-
-        Returns
-        -------
-        torch.tensor
-            The result of applying upsampling
-        """
-        return self.conv.forward(nn_upsampling(input[0].clone(), self.scale_factor))
-
-    def backward(self, *gradwrtoutput):
-        """Upsampling layer backward pass
-
-        Parameters
-        ----------
-        gradwrtoutput : torch.tensor
-            The gradients wrt the module's output
-
-        Returns
-        -------
-        torch.tensor
-            The gradient of the loss wrt the module's input
-        """
-        return self.conv.backward(gradwrtoutput) 
-        
-    def param(self):
-        """Returns the trainable parameters of the upsampling layer
-
-        Returns
-        -------
-        list
-            The list of trainable parameters
-        """
-        return self.conv.param()
 
 class TransposeConv2d(Module): 
     """
