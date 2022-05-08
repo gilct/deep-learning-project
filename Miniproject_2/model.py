@@ -1166,6 +1166,8 @@ class Model():
         num_epochs: int
             The number of epochs to train for
         """
+        train_input = (train_input  / 255.0).float()
+        train_target = (train_target  / 255.0).float()
         for e in range(num_epochs):
             item = f'\rTraining epoch {e+1}/{num_epochs}...'
             print(item, sep=' ', end='', flush=True)
@@ -1191,58 +1193,5 @@ class Model():
         torch.tensor, (N1, C, H, W) 
             The denoised `test_input`
         """
-        return self.model.forward(test_input)
-
-def psnr(denoised, ground_truth):
-  # Peak Signal to Noise Ratio : denoised and ground˙truth have range [0 , 1]
-  mse = torch.mean(( denoised - ground_truth ) ** 2)
-  return -10 * torch.log10( mse + 10**-8)
-
-def example_run():
-
-    SEED = 3
-    torch.manual_seed(SEED)
-
-    # Instantiate model
-    model = Model()
-
-    # Load existing model
-    load = False
-    if load:
-        model.load_pretrained_model()
-
-    # Load data
-    noisy_imgs_1, noisy_imgs_2 = torch.load("../data/train_data.pkl")
-    noisy_imgs_test , clean_images = torch.load("../data/val_data.pkl")
-
-    noisy_imgs_1 = (noisy_imgs_1  / 255.0).float()
-    noisy_imgs_2 = (noisy_imgs_2  / 255.0).float()
-
-    noisy_imgs_test = (noisy_imgs_test / 255.0).float()
-    clean_images = (clean_images / 255.0).float()
-
-    # Select training samples
-    train_input = noisy_imgs_1
-    train_targets = noisy_imgs_2
-
-    # Evaluate on untrained or loaded
-    results = model.predict(noisy_imgs_test)
-    ps = psnr(results, clean_images)
-    print(f'Initially: {ps}')
-
-    # Train  
-    num_epochs = 20
-    model.train(train_input, train_targets, num_epochs)
-
-    # Evaluate
-    results = model.predict(noisy_imgs_test)
-    ps = psnr(results, clean_images)
-    print(f'After training: {ps}')
-
-    # Save trained model
-    save = True
-    if save:
-        print("Saving model...")
-        torch.save(model.model.state_dict(), 'bestmodel.pth')
-
-example_run()
+        test_input = (test_input / 255.0).float()
+        return self.model.forward(test_input) * 255.0
