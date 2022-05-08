@@ -24,6 +24,16 @@ class Module(object):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
+    to(device)
+        Moves the module to the device
+    state_dict()
+        Returns the weights and biases
+    load_state_dict(state)
+        Loads the weights and biases
+    set_weight(weight)
+        Set the weight
+    set_bias(weight)
+        Set the bias
     """
 
     def __init__(self):
@@ -70,6 +80,58 @@ class Module(object):
         """
         return []
 
+    def to(self, device):
+        """Moves the module to the device
+
+        Parameters
+        ----------
+        device : torch.device
+            The device to to move the module to
+        """
+        pass
+
+    def state_dict(self):
+        """Returns the weights and biases in a
+        dictionary
+
+        Returns
+        -------
+        dict
+            The dictionary of weights and biases of the module
+        """
+        pass
+
+    def load_state_dict(self, state_dict):
+        """Loads the weights and biases from the `state_dict`
+        dictionary
+
+        Parameters
+        ----------
+        state_dict : dict
+            The dictionary of weights and biases of the module
+        """  
+        pass
+
+    def set_weight(self, weight):
+        """Set the weight of the module
+        
+        Parameters
+        ----------
+        weight : torch.tensor
+            The weight
+        """
+        pass
+
+    def set_bias(self, bias):
+        """Set the bias of the module
+        
+        Parameters
+        ----------
+        bias : torch.tensor
+            The bias
+        """
+        pass       
+
 # ------------------- Sequential -------------------
 
 class Sequential(Module):
@@ -81,9 +143,6 @@ class Sequential(Module):
     modules : list
         a list of the sequential module's modules stored 
         in forward sequential order
-    params : list
-        a list of all the trainable parameters of the 
-        sequential module
 
     Methods
     -------
@@ -93,6 +152,12 @@ class Sequential(Module):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
+    to(device)
+        Moves the module to the device
+    state_dict()
+        Returns the weights and biases of the sub-modules
+    load_state_dict(state)
+        Loads the weights and biases
     """
     
     def __init__(self, *modules):
@@ -105,10 +170,6 @@ class Sequential(Module):
         """
         super().__init__()
         self.modules = list(modules)
-        self.params = []
-        for module in self.modules:
-            for param in module.param():
-                self.params.append(param)
     
     def forward(self, *input):
         """Sequential forward pass
@@ -154,7 +215,55 @@ class Sequential(Module):
         list
             The list of trainable parameters
         """
-        return self.params
+        params = []
+        for module in self.modules:
+            for param in module.param():
+                params.append(param)
+        return params
+
+    def to(self, device):
+        """Moves the module to the device
+
+        Parameters
+        ----------
+        device : torch.device
+            The device to to move the module to
+        """
+        for module in self.modules:
+            module.to(device)
+
+    def state_dict(self):
+        """Returns the weights and biases of the sub-modules
+        in a dictionary
+
+        Returns
+        -------
+        dict
+            The dictionary of weights and biases of all the sub-modules
+        """
+        description = ["weight", "bias"]
+        ret_dict = {}
+        for i, module in enumerate(self.modules):
+            for d_i, param in enumerate(module.param()):
+                ret_dict[str(i)+"."+description[d_i]] = param[0]
+        return ret_dict        
+
+    def load_state_dict(self, state):
+        """Loads the weights and biases from the `state`
+        dictionary
+
+        Parameters
+        ----------
+        state_dict : dict
+            The dictionary of weights and biases of the sub-modules
+        """ 
+        for i, module in enumerate(self.modules):
+            w_key = str(i)+"."+"weight"
+            b_key = str(i)+"."+"bias"
+            if w_key in state:
+                module.set_weight(state[w_key])
+            if b_key in state:
+                module.set_bias(state[b_key])
 
 # --------------------- Layers --------------------- 
 
@@ -313,6 +422,12 @@ class Conv2d(Module):
     reset_params(transpose, init_val)
         Resets the trainable parameters of the 
         convolution module
+    to(device)
+        Moves the module to the device
+    set_weight(weight)
+        Set the weight
+    set_bias(weight)
+        Set the bias
     """   
 
     def __init__(self, in_channels, out_channels, kernel_size, 
@@ -557,6 +672,39 @@ class Conv2d(Module):
         self.grad_weight.zero_()
         self.grad_bias.zero_() 
 
+    def to(self, device):
+        """Moves the module to the device
+
+        Parameters
+        ----------
+        device : torch.device
+            The device to to move the module to
+        """
+        self.weight = self.weight.to(device)
+        self.bias = self.bias.to(device)
+        self.grad_weight = self.grad_weight.to(device)
+        self.grad_bias = self.grad_bias.to(device)
+
+    def set_weight(self, weight):
+        """Set the weight of the convolution module
+        
+        Parameters
+        ----------
+        weight : torch.tensor
+            The weight
+        """
+        self.weight = weight
+
+    def set_bias(self, bias):
+        """Set the weight of the convolution module
+        
+        Parameters
+        ----------
+        bias : torch.tensor
+            The bias
+        """
+        self.bias = bias
+
 class TransposeConv2d(Module): 
     """
     Transpose convolution module class implemented using
@@ -585,6 +733,12 @@ class TransposeConv2d(Module):
         Runs the backward pass
     param()
         Returns the list of trainable parameters
+    to(device)
+        Moves the module to the device
+    set_weight(weight)
+        Set the weight
+    set_bias(weight)
+        Set the bias
     """    
     def __init__(self, in_channels, out_channels, 
                  kernel_size, stride=1, padding=0,
@@ -678,6 +832,36 @@ class TransposeConv2d(Module):
             The list of trainable parameters and their gradients
         """
         return self.conv.param()
+
+    def to(self, device):
+        """Moves the module to the device
+
+        Parameters
+        ----------
+        device : torch.device
+            The device to to move the module to
+        """
+        self.conv.to(device)
+
+    def set_weight(self, weight):
+        """Set the weight of the transpose convolution module
+        
+        Parameters
+        ----------
+        weight : torch.tensor
+            The weight
+        """
+        self.conv.set_weight(weight)
+
+    def set_bias(self, bias):
+        """Set the bias of the transpose convolution module
+        
+        Parameters
+        ----------
+        bias : torch.tensor
+            The bias
+        """
+        self.conv.set_bias(bias)
 
 # --------------- Activation functions ------------- 
 
@@ -930,37 +1114,44 @@ class Model():
 
     def __init__(self) -> None:
         """Model constructor"""
-        channels = 3
-        out_ch_conv1, out_ch_conv2 = 32, 64
-        kernel_size = (2,2)
-        stride = 2
-        lr, self.batch_size = 1e-5, 10
-        self.model = Sequential(Conv2d(in_channels=channels, 
-                                       out_channels=out_ch_conv1, 
+        in_channels = 3
+        conv_1_in, conv_1_out = in_channels, 32
+        conv_2_in, conv_2_out = conv_1_out, 64
+        t_conv_1_in, t_conv_1_out = conv_2_out, conv_2_in
+        t_conv_2_in, t_conv_2_out = t_conv_1_out, in_channels
+
+        kernel_size, stride = (2,2), (1,1)
+        self.batch_size = 10
+        self.lr = 10-4   
+
+        self.model = Sequential(Conv2d(conv_1_in, 
+                                       conv_1_out, 
                                        kernel_size=kernel_size, 
                                        stride=stride),
                                 ReLU(),
-                                Conv2d(in_channels=out_ch_conv1, 
-                                       out_channels=out_ch_conv2, 
+                                Conv2d(conv_2_in, 
+                                       conv_2_out, 
                                        kernel_size=kernel_size, 
                                        stride=stride),
                                 ReLU(),
-                                TransposeConv2d(in_channels=out_ch_conv2,
-                                                out_channels=out_ch_conv1,
-                                                kernel_size=kernel_size,
+                                TransposeConv2d(t_conv_1_in, 
+                                                t_conv_1_out, 
+                                                kernel_size=kernel_size, 
                                                 stride=stride),
                                 ReLU(),
-                                TransposeConv2d(in_channels=out_ch_conv1,
-                                                out_channels=channels,
-                                                kernel_size=kernel_size,
+                                TransposeConv2d(t_conv_2_in, 
+                                                t_conv_2_out, 
+                                                kernel_size=kernel_size, 
                                                 stride=stride),
                                 Sigmoid())
-        self.optimizer = SGD(self.model.param(), lr=lr)
+        self.optimizer = SGD(self.model.param(), lr=self.lr)
         self.criterion = MSE()
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        pass
+        best_model_state_dict = torch.load('bestmodel.pth')
+        self.model.load_state_dict(best_model_state_dict)
+        self.optimizer = SGD(self.model.param(), lr=self.lr)
 
     def train(self, train_input, train_target, num_epochs) -> None:
         """Runs the training procedure
@@ -968,10 +1159,12 @@ class Model():
         Parameters
         ----------
         train_input: (N, C, H, W), torch.tensor
-            Tensor containing a noisy version of the images.
+            Tensor containing a noisy version of the images
         train_target: (N, C, H, W), torch.tensor
             Tensor containing another noisy version of the same 
-            images, which only differs from the input by their noise.
+            images, which only differs from the input by their noise
+        num_epochs: int
+            The number of epochs to train for
         """
         for e in range(num_epochs):
             item = f'\rTraining epoch {e+1}/{num_epochs}...'
@@ -1000,42 +1193,56 @@ class Model():
         """
         return self.model.forward(test_input)
 
+def psnr(denoised, ground_truth):
+  # Peak Signal to Noise Ratio : denoised and ground˙truth have range [0 , 1]
+  mse = torch.mean(( denoised - ground_truth ) ** 2)
+  return -10 * torch.log10( mse + 10**-8)
+
 def example_run():
 
-    SEED = 2022
+    SEED = 3
     torch.manual_seed(SEED)
 
+    # Instantiate model
     model = Model()
-    num_epochs = 10
 
-    # Use synthetic up data
-    # Parameters of distribution of inputs and targets
-    # in_channels, height, width = 3, 32, 32
-    # n_samples = 200
-    # mean, std = 0, 1
-    # train_input = torch.randint(0,50,(n_samples, in_channels, height, width)).type(torch.FloatTensor)
-    # train_targets = train_input + empty(n_samples, in_channels, height, width).normal_(mean, std)
-    # some_sample = torch.randint(0,50,(1, in_channels, height, width)).type(torch.FloatTensor)
+    # Load existing model
+    load = False
+    if load:
+        model.load_pretrained_model()
 
-    # Use project data
+    # Load data
     noisy_imgs_1, noisy_imgs_2 = torch.load("../data/train_data.pkl")
-    noisy_imgs , clean_imgs = torch.load("../data/val_data.pkl")
-    noisy_imgs_1, noisy_imgs_2 = torch.Tensor.float(noisy_imgs_1), torch.Tensor.float(noisy_imgs_2)
-    noisy_imgs, clean_imgs = torch.Tensor.float(noisy_imgs), torch.Tensor.float(clean_imgs)
-    train_input = noisy_imgs_1[:200]
-    train_targets = noisy_imgs_2[:200]
-    some_sample = noisy_imgs[0][None, :]
+    noisy_imgs_test , clean_images = torch.load("../data/val_data.pkl")
 
-    # Normalize data
-    mu, std = train_input.mean(), train_input.std()
-    train_input.sub_(mu).div_(std)
+    noisy_imgs_1 = (noisy_imgs_1  / 255.0).float()
+    noisy_imgs_2 = (noisy_imgs_2  / 255.0).float()
 
-    # Train and predict
+    noisy_imgs_test = (noisy_imgs_test / 255.0).float()
+    clean_images = (clean_images / 255.0).float()
+
+    # Select training samples
+    train_input = noisy_imgs_1
+    train_targets = noisy_imgs_2
+
+    # Evaluate on untrained or loaded
+    results = model.predict(noisy_imgs_test)
+    ps = psnr(results, clean_images)
+    print(f'Initially: {ps}')
+
+    # Train  
+    num_epochs = 20
     model.train(train_input, train_targets, num_epochs)
 
     # Evaluate
-    some_sample.sub_(mu).div_(std)
-    pred = model.predict(some_sample)
-    # print(pred)
+    results = model.predict(noisy_imgs_test)
+    ps = psnr(results, clean_images)
+    print(f'After training: {ps}')
 
-# example_run()
+    # Save trained model
+    save = True
+    if save:
+        print("Saving model...")
+        torch.save(model.model.state_dict(), 'bestmodel.pth')
+
+example_run()
