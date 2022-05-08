@@ -91,7 +91,7 @@ def stride_tensor(tensor, stride=(1,1)):
     """
     n,c,h,w = tensor.shape
     s_h, s_w = stride[0]-1, stride[1]-1
-    ret = empty(n,c,h+(h-1)*s_h,w+(w-1)*s_w).fill_(0.0)
+    ret = empty(n,c,h+(h-1)*s_h,w+(w-1)*s_w, device=tensor.device).fill_(0.0)
     ret[:,:,::(1+s_h),::(1+s_w)] = tensor
     return ret
 
@@ -119,7 +119,7 @@ def unstride_tensor(tensor, stride=(1,1)):
     """
     return tensor[:,:,::stride[0],::stride[1]]
 
-def pad_tensor(t, kernel_size, padding=(0,0)):
+def pad_tensor(tensor, kernel_size, padding=(0,0)):
     """Zero pad the input tensor.
     The amounnt of zero padding to apply to the height and
     width of the input tensor is determined by the kernel
@@ -171,12 +171,12 @@ def pad_tensor(t, kernel_size, padding=(0,0)):
     torch.tensor
         The padded tensor
     """
-    n,c,h,w = t.shape
+    n,c,h,w = tensor.shape
     k_h, k_w = kernel_size[0], kernel_size[1]
     padding_h, padding_w = padding
     new_h, new_w = h + 2 * (k_h - 1) - 2*padding_h, \
                    w + 2 * (k_w - 1) - 2*padding_w
-    ret = empty(n,c,new_h,new_w).fill_(0.0)
+    ret = empty(n,c,new_h,new_w, device=tensor.device).fill_(0.0)
 
     start_h = max(k_h-1-padding_h,0)
     end_h = start_h + min(h, new_h)
@@ -186,7 +186,7 @@ def pad_tensor(t, kernel_size, padding=(0,0)):
     t_h_offset = max(0,padding_h-k_h+1)
     t_w_offset = max(0,padding_w-k_w+1)
     ret[:,:,start_h:end_h,start_w:end_w] = \
-        t[:,:,t_h_offset:h-t_h_offset,t_w_offset:w-t_w_offset]
+        tensor[:,:,t_h_offset:h-t_h_offset,t_w_offset:w-t_w_offset]
     return ret
 
 def unpad_tensor(tensor, origi_size):
@@ -212,7 +212,7 @@ def unpad_tensor(tensor, origi_size):
     torch.tensor
         The un-padded tensor
     """
-    ret = empty(origi_size).fill_(0.0)
+    ret = empty(origi_size, device=tensor.device).fill_(0.0)
     n,c,h_origi,w_origi = origi_size
     n,c,h_pad,w_pad = tensor.size()
     start_h_pad = max(int((h_pad - h_origi) / 2), 0)
