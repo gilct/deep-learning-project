@@ -1091,14 +1091,14 @@ class Model():
 
     Attributes
     ----------
-    nb_epochs : int
-        the number of epochs to train for
     batch_size : int
         the size of the batches to use during training
     model : Module
         the network to use for training and predicting
     optimizer : SGD
         the optimizer to use during training
+    lr : float
+        the learning rate to use during training
     criterion : Module
         the criterion to use during training
 
@@ -1111,6 +1111,7 @@ class Model():
     predict(test_input)
         Generates a prediction on the input
     """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def __init__(self) -> None:
         """Model constructor"""
@@ -1144,6 +1145,7 @@ class Model():
                                                 kernel_size=kernel_size, 
                                                 stride=stride),
                                 Sigmoid())
+        self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
         self.criterion = MSE()
 
@@ -1151,6 +1153,7 @@ class Model():
         """Loads the parameters saved in bestmodel.pth into the model"""
         best_model_state_dict = torch.load('Proj_302882_335482_343955/Miniproject_2/bestmodel.pth')
         self.model.load_state_dict(best_model_state_dict)
+        self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
 
     def train(self, train_input, train_target, num_epochs) -> None:
@@ -1166,8 +1169,8 @@ class Model():
         num_epochs: int
             The number of epochs to train for
         """
-        train_input = (train_input  / 255.0).float()
-        train_target = (train_target  / 255.0).float()
+        train_input = (train_input  / 255.0).float().to(self.device)
+        train_target = (train_target  / 255.0).float().to(self.device)
         for e in range(num_epochs):
             item = f'\rTraining epoch {e+1}/{num_epochs}...'
             print(item, sep=' ', end='', flush=True)
@@ -1193,5 +1196,5 @@ class Model():
         torch.tensor, (N1, C, H, W) 
             The denoised `test_input`
         """
-        test_input = (test_input / 255.0).float()
+        test_input = (test_input / 255.0).float().to(self.device)
         return self.model.forward(test_input) * 255.0
