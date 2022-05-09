@@ -1,7 +1,13 @@
 .DS_Store
 val_data.pkl
 train_data.pkl
-Miniproject_2/.ipynb_checkpoints
+Proj_302882_335482_343955/Miniproject_2/.ipynb_checkpoints
 # Miniproject_2/project_2.ipynb
 .idea/
 _trial_temp/
+Proj_302882_335482_343955/Miniproject_1/__pycache__
+Proj_302882_335482_343955/Miniproject_2/__pycache__
+Proj_302882_335482_343955/Miniproject_1/others/__pycache__
+Proj_302882_335482_343955/Miniproject_2/others/__pycache__
+Proj_302882_335482_343955/Miniproject_1/.ipynb_checkpoints
+Proj_302882_335482_343955/Miniproject_2/.ipynb_checkpoints
