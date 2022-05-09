@@ -39,7 +39,7 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        BESTMODEL_PATH = "./bestmodel.pth"
+        BESTMODEL_PATH = "bestmodel.pth"
         state_dict = torch.load(BESTMODEL_PATH)
         self.model.load_state_dict(state_dict)
         
