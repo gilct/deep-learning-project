@@ -39,8 +39,9 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        BESTMODEL_PATH = "bestmodel.pth"
-        state_dict = torch.load(BESTMODEL_PATH)
+        BESTMODEL_PATH = "Proj_302882_335482_343955/Miniproject_1/bestmodel.pth"
+        # TODO: maybe just pull to cpu at the end of training
+        state_dict = torch.load(BESTMODEL_PATH, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         
 
@@ -69,7 +70,6 @@ class Model():
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
-            print()
 
 
     def predict(self, test_input) -> torch.Tensor:
