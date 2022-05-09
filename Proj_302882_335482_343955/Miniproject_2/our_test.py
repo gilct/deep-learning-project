@@ -11,7 +11,7 @@ torch.set_grad_enabled(True)
 SEED = 2022
 torch.manual_seed(SEED)
 
-from others.test_helpers import *
+from .others.test_helpers import *
 
 class Testing(unittest.TestCase):
 

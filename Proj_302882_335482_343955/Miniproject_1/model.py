@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from others.models import *
+from .others.models import *
 
 class Model():
     """

@@ -1,7 +1,7 @@
 import math
 from torch import empty
 from torch.nn.functional import fold, unfold
-from others.others import make_tuple, \
+from .others.others import make_tuple, \
                           compute_conv_output_shape, \
                           stride_tensor, \
                           pad_tensor, \
@@ -30,6 +30,9 @@ class Module(object):
         """Constructor"""
         pass
     
+    def __forward__(self, *input):
+        self.forward(input)
+
     def forward(self, *input):
         """Runs the forward pass
 
@@ -110,6 +113,9 @@ class Sequential(Module):
             for param in module.param():
                 self.params.append(param)
     
+    def __forward__(self, *input):
+        self.forward(input)
+
     def forward(self, *input):
         """Sequential forward pass
         Calls forward(input) on all the modules 
@@ -205,6 +211,9 @@ class Linear(Module):
         self.grad_bias = empty(output_size)
         self.reset_params(input_size, init_val)
     
+    def __forward__(self, *input):
+        self.forward(input)
+
     def forward(self, *input):
         """Linear module forward pass
 
