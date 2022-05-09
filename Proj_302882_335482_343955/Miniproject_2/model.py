@@ -1,7 +1,7 @@
 import math
 from torch import empty
 from torch.nn.functional import fold, unfold
-from others.others import make_tuple, \
+from .others.others import make_tuple, \
                           compute_conv_output_shape, \
                           stride_tensor, \
                           pad_tensor, \
@@ -1149,7 +1149,7 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        best_model_state_dict = torch.load('bestmodel.pth')
+        best_model_state_dict = torch.load('Proj_302882_335482_343955/Miniproject_2/bestmodel.pth')
         self.model.load_state_dict(best_model_state_dict)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
 

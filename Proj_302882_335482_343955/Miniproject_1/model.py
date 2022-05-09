@@ -1,6 +1,15 @@
 import torch
 import torch.nn as nn
-from others.models import *
+from .others.models import *
+
+# Since grad is disabled for minipart 2
+# just enable it here to ensure that it is
+# always enabled for part 1 (which it 
+# should be). Otherwise it will cause 
+# errors when tests load model.py from 
+# part 1 after having previously loaded 
+# model.py from part 2
+torch.set_grad_enabled(True)
 
 class Model():
     """
@@ -39,8 +48,9 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        BESTMODEL_PATH = "./bestmodel.pth"
-        state_dict = torch.load(BESTMODEL_PATH)
+        BESTMODEL_PATH = "Proj_302882_335482_343955/Miniproject_1/bestmodel.pth"
+        # TODO: maybe just pull to cpu at the end of training
+        state_dict = torch.load(BESTMODEL_PATH, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         
 
@@ -59,17 +69,19 @@ class Model():
         noisy_imgs_1 = (train_input  / 255.0).float().to(self.device)
         noisy_imgs_2 = (train_target  / 255.0).float().to(self.device)
 
-        for e in range(num_epochs):
-            item = f'\r\nTraining epoch {e+1}/{num_epochs}...'
-            print(item, sep=' ', end='', flush=True)
-            for b in range(0, noisy_imgs_1.size(0), self.batch_size):
-                output = self.model(noisy_imgs_1.narrow(0, b, self.batch_size))
-                loss = self.criterion(output, noisy_imgs_2.narrow(0, b, self.batch_size))
-
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-            print()
+        # Not strictly necessary but this is what the state should be
+        # anyways so just enforce it 
+        self.model.train()
+        with torch.enable_grad():
+            for e in range(num_epochs):
+                item = f'\r\nTraining epoch {e+1}/{num_epochs}...'
+                print(item, sep=' ', end='', flush=True)
+                for b in range(0, noisy_imgs_1.size(0), self.batch_size):
+                    output = self.model(noisy_imgs_1.narrow(0, b, self.batch_size))
+                    loss = self.criterion(output, noisy_imgs_2.narrow(0, b, self.batch_size))
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
 
 
     def predict(self, test_input) -> torch.Tensor:
@@ -87,4 +99,8 @@ class Model():
         """
 
         test_input = (test_input  / 255.0).float().to(self.device)
-        return self.model(test_input) * 255.0
+        # Seems reasonable to set model to eval mode and 
+        # not compute gradients during predictions  
+        self.model.eval()
+        with torch.no_grad(): 
+            return self.model(test_input) * 255.0
