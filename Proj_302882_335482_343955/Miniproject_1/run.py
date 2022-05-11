@@ -1,5 +1,5 @@
 import torch
-torch.set_grad_enabled(False)
+torch.set_grad_enabled(True)
 from model import Model
 import time
 
@@ -21,7 +21,7 @@ def main():
     model = Model()
 
     # Load existing model
-    load = True
+    load = False
     if load:
         model.load_pretrained_model()
 
@@ -42,7 +42,7 @@ def main():
 
     # Train  
     start = time.time()
-    num_epochs = 8
+    num_epochs = 3
     model.train(train_input, train_targets, num_epochs)
 
     # Evaluate

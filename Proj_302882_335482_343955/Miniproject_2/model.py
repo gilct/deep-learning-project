@@ -1,12 +1,23 @@
+try:
+    from others.others import make_tuple, \
+                              compute_conv_output_shape, \
+                              stride_tensor, \
+                              pad_tensor, \
+                              unpad_tensor, \
+                              unstride_tensor
+    from others.helpers import load_path
+except ImportError:
+    from .others.others import make_tuple, \
+                               compute_conv_output_shape, \
+                               stride_tensor, \
+                               pad_tensor, \
+                               unpad_tensor, \
+                               unstride_tensor
+    from .others.helpers import load_path   
+    
 import math
 from torch import empty
 from torch.nn.functional import fold, unfold
-from .others.others import make_tuple, \
-                          compute_conv_output_shape, \
-                          stride_tensor, \
-                          pad_tensor, \
-                          unpad_tensor, \
-                          unstride_tensor
 import torch
 torch.set_grad_enabled(False)
 
@@ -1115,6 +1126,10 @@ class Model():
 
     def __init__(self) -> None:
         """Model constructor"""
+
+        SEED = 3
+        torch.manual_seed(SEED)
+        
         in_channels = 3
         conv_1_in, conv_1_out = in_channels, 32
         conv_2_in, conv_2_out = conv_1_out, 64
@@ -1155,7 +1170,8 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        best_model_state_dict = torch.load('Proj_302882_335482_343955/Miniproject_2/bestmodel.pth')
+        PATH_TO_MODEL = load_path(mini_project=2)
+        best_model_state_dict = torch.load(PATH_TO_MODEL)
         self.model.load_state_dict(best_model_state_dict)
         self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
@@ -1176,7 +1192,7 @@ class Model():
         train_input = (train_input  / 255.0).float().to(self.device)
         train_target = (train_target  / 255.0).float().to(self.device)
         for e in range(num_epochs):
-            item = f'\rTraining epoch {e+1}/{num_epochs}...'
+            item = f'\rTraining (on {self.device}) epoch {e+1}/{num_epochs}...'
             print(item, sep=' ', end='', flush=True)
             for input, targets in zip(train_input.split(self.batch_size),
                                       train_target.split(self.batch_size)):

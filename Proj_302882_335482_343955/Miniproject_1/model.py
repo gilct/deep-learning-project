@@ -1,6 +1,11 @@
 import torch
 import torch.nn as nn
-from .others.models import *
+try:
+    from others.models import *
+    from others.helpers import load_path
+except ImportError:
+    from .others.models import *
+    from .others.helpers import load_path 
 
 # Since grad is disabled for minipart 2
 # just enable it here to ensure that it is
@@ -48,9 +53,9 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        BESTMODEL_PATH = "Proj_302882_335482_343955/Miniproject_1/bestmodel.pth"
+        PATH_TO_MODEL = load_path(mini_project=1)
         # TODO: maybe just pull to cpu at the end of training
-        state_dict = torch.load(BESTMODEL_PATH, map_location=torch.device('cpu'))
+        state_dict = torch.load(PATH_TO_MODEL, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         
 
@@ -74,7 +79,7 @@ class Model():
         self.model.train()
         with torch.enable_grad():
             for e in range(num_epochs):
-                item = f'\r\nTraining epoch {e+1}/{num_epochs}...'
+                item = f'\r\nTraining (on {self.device}) epoch {e+1}/{num_epochs}...'
                 print(item, sep=' ', end='', flush=True)
                 for b in range(0, noisy_imgs_1.size(0), self.batch_size):
                     output = self.model(noisy_imgs_1.narrow(0, b, self.batch_size))
@@ -82,6 +87,7 @@ class Model():
                     self.optimizer.zero_grad()
                     loss.backward()
                     self.optimizer.step()
+        print()
 
 
     def predict(self, test_input) -> torch.Tensor:
