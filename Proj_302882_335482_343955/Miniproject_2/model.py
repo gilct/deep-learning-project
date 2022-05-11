@@ -717,10 +717,10 @@ class TransposeConv2d(Module):
     stride : tuple
         stride of the convolution
     padding : tuple
-        zero padding to be added on both sides of input
+        implicit zero padding to be added on both sides of input
     dilation : tuple
         controls the stride of elements within the neighborhood
-    conv : Module
+    conv : Conv2d
         the convolution module
     strided_shape : torch.size
         the shape of the input after it has been strided
@@ -1121,29 +1121,33 @@ class Model():
         t_conv_1_in, t_conv_1_out = conv_2_out, conv_2_in
         t_conv_2_in, t_conv_2_out = t_conv_1_out, in_channels
 
-        kernel_size, stride = (2,2), (1,1)
+        kernel_size, stride, padding = (2,2), (1,1), (1,1)
         self.batch_size = 10
         self.lr = 10-4   
 
         self.model = Sequential(Conv2d(conv_1_in, 
                                        conv_1_out, 
                                        kernel_size=kernel_size, 
-                                       stride=stride),
+                                       stride=stride,
+                                       padding=padding),
                                 ReLU(),
                                 Conv2d(conv_2_in, 
                                        conv_2_out, 
                                        kernel_size=kernel_size, 
-                                       stride=stride),
+                                       stride=stride,
+                                       padding=padding),
                                 ReLU(),
                                 TransposeConv2d(t_conv_1_in, 
                                                 t_conv_1_out, 
                                                 kernel_size=kernel_size, 
-                                                stride=stride),
+                                                stride=stride,
+                                                padding=padding),
                                 ReLU(),
                                 TransposeConv2d(t_conv_2_in, 
                                                 t_conv_2_out, 
                                                 kernel_size=kernel_size, 
-                                                stride=stride),
+                                                stride=stride,
+                                                padding=padding),
                                 Sigmoid())
         self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)

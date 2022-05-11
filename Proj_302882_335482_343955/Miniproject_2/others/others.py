@@ -55,7 +55,6 @@ def compute_conv_output_shape(in_dim,
 
     return (h_out, w_out)
 
-# used by TransposeConv2d
 def stride_tensor(tensor, stride=(1,1)):
     """Stride the input tensor.
     In this context, striding means inserting columns 
