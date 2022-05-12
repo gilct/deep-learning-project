@@ -14,14 +14,15 @@ def compute_psnr(x, y, max_range=1.0):
 
 def main():
 
-    SEED = 3
-    torch.manual_seed(SEED)
+    # SEED = 3
+    # torch.manual_seed(SEED)
+    # no need, seed is set inside Model
 
     # Instantiate model
     model = Model()
 
     # Load existing model
-    load = True
+    load = False
     if load:
         model.load_pretrained_model()
 
@@ -57,7 +58,7 @@ def main():
     save = False
     if save:
         print("Saving model...")
-        torch.save(model.model.state_dict(), 'bestmodel__.pth')
+        torch.save(model.model.state_dict(), 'bestmodel__test.pth')
 
 if __name__ == "__main__":
     main()

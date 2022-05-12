@@ -1020,26 +1020,32 @@ class MSE(Module):
         super().__init__()
         self.error = None
     
-    def forward (self, prediction, target):
+    def forward (self, *input):
         """MSE loss module forward pass
 
         Parameters
         ----------
-        prediction : torch.tensor
-            The predicted values
-        target : torch.tensor
-            The ground truth values
+        input : torch.tensor
+            The predicted and target values
 
         Returns
         -------
         torch.tensor
             The result of applying the MSE loss
-        """      
+        """   
+        prediction, target = input[0], input[1]   
         self.error = prediction - target
         return self.error.pow(2).mean()
         
-    def backward(self):
+    def backward(self, *gradwrtoutput):
         """MSE loss module backward pass
+
+        Parameters
+        ----------
+        gradwrtoutput : torch.tensor
+            The gradients wrt the module's output
+            Never used sice MSE is assumed to be last part
+            of network
 
         Returns
         -------
