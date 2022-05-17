@@ -87,6 +87,13 @@ class Model():
                     self.optimizer.zero_grad()
                     loss.backward()
                     self.optimizer.step()
+
+                    output = self.model(noisy_imgs_2.narrow(0, b, self.batch_size))
+                    loss = self.criterion(output, noisy_imgs_1.narrow(0, b, self.batch_size))
+
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
         print()
 
 
