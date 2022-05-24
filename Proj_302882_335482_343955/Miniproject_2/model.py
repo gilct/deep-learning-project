@@ -877,7 +877,7 @@ class TransposeConv2d(Module):
 
 class Upsampling(TransposeConv2d):
     """
-    Wrapper for transpose convolution module class.
+    Wrapper for transpose convolution module class
     """
     def __init__(self, in_channels, out_channels, 
                  kernel_size, stride=1, padding=0,
