@@ -38,7 +38,7 @@ def main():
 
     # Evaluate on untrained or loaded
     results = model.predict(noisy_imgs_test) / 255.0
-    ps = compute_psnr(results, clean_images)
+    ps = compute_psnr(results.cpu(), clean_images)
     print(f'Initially: {ps}')
 
     # Train  
@@ -48,7 +48,7 @@ def main():
 
     # Evaluate
     results = model.predict(noisy_imgs_test) / 255.0
-    ps = compute_psnr(results, clean_images)
+    ps = compute_psnr(results.cpu(), clean_images)
     print(f'After training: {ps}')
     end = time.time()
     duration = (end - start) / 60.0

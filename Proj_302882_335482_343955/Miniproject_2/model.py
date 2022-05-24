@@ -775,7 +775,8 @@ class TransposeConv2d(Module):
             neighborhood (default is 1)
         init_val: float, optional
             Default value of all weights (default is None)
-        """            
+        """   
+        super().__init__()         
         self.kernel_size = make_tuple(kernel_size)
         self.stride = make_tuple(stride)
         self.padding = make_tuple(padding)
@@ -873,6 +874,39 @@ class TransposeConv2d(Module):
             The bias
         """
         self.conv.set_bias(bias)
+
+class Upsampling(TransposeConv2d):
+    """
+    Wrapper for transpose convolution module class.
+    """
+    def __init__(self, in_channels, out_channels, 
+                 kernel_size, stride=1, padding=0,
+                 dilation=1, init_val=None):
+        """Upsampling constructor
+        
+        Parameters
+        ----------
+        in_channels : int
+            Number of channels in the input image
+        out_channels : int
+            Number of channels produced by the transpose
+            convolution
+        kernel_size : int or tuple
+            Size of the convolving kernel
+        stride : int or tuple, optional
+            Stride of the transpose convolution (default is 1)
+        padding : int or tuple, optional
+            Implicit zero padding to be added on both sides of 
+            input (default is 0)
+        dilation : int or tuple, optional
+            Controls the stride of elements within the 
+            neighborhood (default is 1)
+        init_val: float, optional
+            Default value of all weights (default is None)
+        """  
+        super().__init__(in_channels,out_channels,
+                         kernel_size,stride,
+                         padding,dilation,init_val)
 
 # --------------- Activation functions ------------- 
 
@@ -1158,17 +1192,17 @@ class Model():
                                        stride=stride,
                                        padding=padding),
                                 ReLU(),
-                                TransposeConv2d(t_conv_1_in, 
-                                                t_conv_1_out, 
-                                                kernel_size=kernel_size, 
-                                                stride=stride,
-                                                padding=padding),
+                                Upsampling(t_conv_1_in, 
+                                           t_conv_1_out, 
+                                           kernel_size=kernel_size, 
+                                           stride=stride,
+                                           padding=padding),
                                 ReLU(),
-                                TransposeConv2d(t_conv_2_in, 
-                                                t_conv_2_out, 
-                                                kernel_size=kernel_size, 
-                                                stride=stride,
-                                                padding=padding),
+                                Upsampling(t_conv_2_in, 
+                                           t_conv_2_out, 
+                                           kernel_size=kernel_size, 
+                                           stride=stride,
+                                           padding=padding),
                                 Sigmoid())
         self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
