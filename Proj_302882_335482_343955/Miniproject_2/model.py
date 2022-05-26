@@ -5,7 +5,6 @@ try:
                               pad_tensor, \
                               unpad_tensor, \
                               unstride_tensor
-    from others.helpers import load_path
 except ImportError:
     from .others.others import make_tuple, \
                                compute_conv_output_shape, \
@@ -13,7 +12,6 @@ except ImportError:
                                pad_tensor, \
                                unpad_tensor, \
                                unstride_tensor
-    from .others.helpers import load_path   
     
 import math
 from torch import empty
@@ -21,6 +19,7 @@ from torch.nn.functional import fold, unfold
 import torch
 torch.set_grad_enabled(False)
 import pickle
+from pathlib import Path
 
 # --------------------- Module ---------------------
 
@@ -1211,7 +1210,7 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        PATH_TO_MODEL = load_path(mini_project=2)
+        PATH_TO_MODEL = Path(__file__).parent / "bestmodel.pth"
         with open(PATH_TO_MODEL,'rb') as dict:
             # print("Loading with pickle!")
             best_model_state_dict = pickle.load(dict)

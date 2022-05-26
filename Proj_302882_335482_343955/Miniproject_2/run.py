@@ -23,7 +23,7 @@ def main():
     model = Model()
 
     # Load existing model
-    load = False
+    load = True
     if load:
         model.load_pretrained_model()
 

@@ -2,10 +2,9 @@ import torch
 import torch.nn as nn
 try:
     from others.models import *
-    from others.helpers import load_path
 except ImportError:
     from .others.models import *
-    from .others.helpers import load_path 
+from pathlib import Path
 
 # Since grad is disabled for minipart 2
 # just enable it here to ensure that it is
@@ -53,7 +52,7 @@ class Model():
 
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
-        PATH_TO_MODEL = load_path(mini_project=1)
+        PATH_TO_MODEL = Path(__file__).parent / "bestmodel.pth"
         # TODO: maybe just pull to cpu at the end of training
         state_dict = torch.load(PATH_TO_MODEL, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
