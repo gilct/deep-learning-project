@@ -2,6 +2,7 @@ import torch
 torch.set_grad_enabled(False)
 from model import Model
 import time
+import pickle
 
 # def psnr(denoised, ground_truth):
 #   # Peak Signal to Noise Ratio : denoised and ground˙truth have range [0 , 1]
@@ -58,7 +59,26 @@ def main():
     save = False
     if save:
         print("Saving model...")
-        torch.save(model.model.state_dict(), 'bestmodel__test.pth')
+        with open('bestmodel_pickle.pth','wb') as outfile:
+            pickle.dump(model.model.state_dict(), outfile)
+        torch.save(model.model.state_dict(), 'bestmodel_torch.pth')
+
+def convert_torch_to_pickle():
+    print("Loading origi dict")
+    best_model_state_dict = torch.load("bestmodel.pth")
+    print("Saving origi dict with pickle")
+    with open('bestmodel_pickle.pth','wb') as outfile:
+            pickle.dump(best_model_state_dict, outfile)
+    print("Loading origi dict with pickle")
+    with open('bestmodel_pickle.pth','rb') as dict:
+        best_model_state_dict_from_pickle = pickle.load(dict)
+    
+    origi_vals = best_model_state_dict.values()
+    new_vals = best_model_state_dict_from_pickle.values()
+    print("Comparing origi dict with pickle dict")
+    for (el1, el2) in list(zip(origi_vals, new_vals)):
+        torch.allclose(el1,el2)
+    print("Success!")
 
 if __name__ == "__main__":
     main()

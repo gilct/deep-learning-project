@@ -20,6 +20,7 @@ from torch import empty
 from torch.nn.functional import fold, unfold
 import torch
 torch.set_grad_enabled(False)
+import pickle
 
 # --------------------- Module ---------------------
 
@@ -1211,7 +1212,11 @@ class Model():
     def load_pretrained_model(self) -> None:
         """Loads the parameters saved in bestmodel.pth into the model"""
         PATH_TO_MODEL = load_path(mini_project=2)
-        best_model_state_dict = torch.load(PATH_TO_MODEL)
+        with open(PATH_TO_MODEL,'rb') as dict:
+            # print("Loading with pickle!")
+            best_model_state_dict = pickle.load(dict)
+        # don't use torch !!
+        # best_model_state_dict = torch.load(PATH_TO_MODEL)
         self.model.load_state_dict(best_model_state_dict)
         self.model.to(self.device)
         self.optimizer = SGD(self.model.param(), lr=self.lr)
